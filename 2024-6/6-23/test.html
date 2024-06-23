@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <style>
+    .app-container {
+      font-family: Arial, sans-serif;
+      background-color: #1e1e1e;
+      color: white;
+      padding: 20px;
+      max-width: 375px;
+      margin: 0 auto;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .main-stats {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 20px;
+    }
+
+    .circle-stat {
+      position: relative;
+      width: 150px;
+      height: 150px;
+    }
+
+    .other-stats {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .stat {
+      background-color: #2a2a2a;
+      padding: 10px;
+      border-radius: 10px;
+      margin-bottom: 10px;
+    }
+
+    .power-stats {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 20px;
+    }
+
+    .earnings {
+      margin-top: 20px;
+    }
+
+    .chart {
+      height: 100px;
+      background-color: #2a2a2a;
+      border-radius: 10px;
+      margin-top: 10px;
+    }
+
+    .bottom-nav {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 20px;
+    }
+
+    .bottom-nav button {
+      background: none;
+      border: none;
+      color: white;
+    }
+  </style>
+  <body>
+    <div class="app-container">
+      <header>
+        <h1>LIVOLTEK</h1>
+        <p>China,HangZhou</p>
+        <span class="temperature">34°C</span>
+      </header>
+
+      <div class="main-stats">
+        <div class="circle-stat">
+          <svg><!-- Circle SVG code here --></svg>
+          <span class="stat-value">999.99</span>
+          <span class="stat-label">Energy Yield</span>
+        </div>
+        <div class="other-stats">
+          <div class="stat">
+            <span class="stat-value">3.89</span>
+            <span class="stat-label">Daily Yield</span>
+          </div>
+          <div class="stat">
+            <span class="stat-value">6989.89</span>
+            <span class="stat-label">Total Yield</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="power-stats">
+        <div class="stat">
+          <span class="stat-label">Current Power</span>
+          <span class="stat-value">34.42 kW</span>
+        </div>
+        <div class="stat">
+          <span class="stat-label">Peak Power</span>
+          <span class="stat-value">69.42 kW</span>
+        </div>
+      </div>
+
+      <div class="earnings">
+        <h2>November earnings</h2>
+        <div class="earnings-value">
+          <span class="value">989.56</span>
+          <span class="currency">USD</span>
+          <span class="change">+15%</span>
+        </div>
+        <div class="chart">
+          <!-- Chart component would go here -->
+        </div>
+      </div>
+
+      <nav class="bottom-nav">
+        <button>Overview</button>
+        <button>PCS</button>
+        <button>Service</button>
+        <button>Me</button>
+      </nav>
+    </div>
+  </body>
+</html>
