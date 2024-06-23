@@ -83,28 +83,28 @@
     return result;
   }
 
-  document.body.addEventListener("click", function (e) {
-    for (let i = -200; i < 200; i++) {
-      let dom_f = document.createElement("div");
-      dom_f.className = "f";
-      dom_f.innerText = fs[index];
-      index = (index + 1) % fs.length;
-      dom_f.style.left = i + e.clientX + "px";
-      if (isNaN(y(Math.abs(i/100), 20)*100)){
-        continue;
-      }
-      dom_f.style.top = y(Math.abs(i/100), 20)*-100 + e.clientY + "px";
-      dom_f.style.color = `rgb(${Math.random() * 255},${Math.random() * 255},${
-        Math.random() * 255
-      })`;
-      setTimeout(() => {
-        dom_f.remove();
-      }, 1500);
-      document.body.appendChild(dom_f);
-      // console.log(i, y(Math.abs(i/100), 0)*100);
-    }
+  // document.body.addEventListener("click", function (e) {
+  //   for (let i = -200; i < 200; i++) {
+  //     let dom_f = document.createElement("div");
+  //     dom_f.className = "f";
+  //     dom_f.innerText = fs[index];
+  //     index = (index + 1) % fs.length;
+  //     dom_f.style.left = i + e.clientX + "px";
+  //     if (isNaN(y(Math.abs(i/100), 20)*100)){
+  //       continue;
+  //     }
+  //     dom_f.style.top = y(Math.abs(i/100), 20)*-100 + e.clientY + "px";
+  //     dom_f.style.color = `rgb(${Math.random() * 255},${Math.random() * 255},${
+  //       Math.random() * 255
+  //     })`;
+  //     setTimeout(() => {
+  //       dom_f.remove();
+  //     }, 1500);
+  //     document.body.appendChild(dom_f);
+  //     // console.log(i, y(Math.abs(i/100), 0)*100);
+  //   }
 
-  });
+  // });
 
   // for (let i = 0; i < 1000; i++) {
   //   // 随机位置的字
