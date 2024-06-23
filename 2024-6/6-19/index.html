@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.7.1/jquery.js"></script>
+  <body>
+    <!-- 1 <input type="text" /> <br /><br />
+    2 <input type="password" /> -->
+    <a href="#">提交</a>
+  </body>
+</html>
+<style>
+  a{
+    text-decoration: none;
+    display: block;
+    height: 30px;
+    background-color: green;
+    width: 200px;
+    cursor: pointer;
+    border-radius: 5px;
+    text-align: center;
+    line-height: 30px;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+</style>
+<script>
+  $(function () {
+
+    $("input[type='text']").css("background-color", "red");
+    
+  });
+</script>

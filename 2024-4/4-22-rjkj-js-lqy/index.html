@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+
+  <style>
+    #demo {
+      width: 200px;
+      height: 100px;
+      background-color: rgb(173, 172, 172);
+      text-align: center;
+      line-height: 100px;
+      color: rgb(255, 255, 255);
+      font-size: 20px;
+    }
+
+
+  </style>
+
+  <body>
+    <div id="demo" onclick="myFunction()">
+    1111</div>
+
+  </body>
+
+  <script>
+    // document.write("11111111");
+    function myFunction() {
+      var x;
+      var r = confirm("按下按钮!");
+      if (r == true) {
+        x = '你按下了"确定"按钮!';
+      } else {
+        x = '你按下了"取消"按钮!';
+      }
+      document.getElementById("demo").innerHTML = x;
+    }
+  </script>
+</html>

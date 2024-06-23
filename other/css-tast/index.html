@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>官网首页</title>
+<style>
+    body {
+        margin: 0;
+        padding: 0;
+        font-family: Arial, sans-serif;
+    }
+    nav {
+        background-color: #000;
+        color: #fff;
+        padding: 10px 0;
+        position: fixed;
+        width: 100%;
+        top: 0;
+        left: 0;
+        z-index: 1000;
+    }
+    nav ul {
+        list-style-type: none;
+        margin: 0;
+        padding: 0;
+        text-align: center;
+    }
+    nav ul li {
+        display: inline;
+        margin-right: 20px;
+    }
+    nav ul li:last-child {
+        margin-right: 0;
+    }
+    nav ul li a {
+        color: #fff;
+        text-decoration: none;
+    }
+    nav ul li ul {
+        display: none;
+        position: absolute;
+        background-color: #000;
+        padding: 10px;
+    }
+    nav ul li:hover ul {
+        display: block;
+    }
+    nav ul li ul li {
+        display: block;
+        margin: 5px 0;
+    }
+    nav ul li ul li a {
+        color: #fff;
+    }
+    .content {
+        padding: 20px;
+    }
+    .hidden {
+        display: none;
+    }
+</style>
+</head>
+<body>
+
+<nav>
+    <ul>
+        <li><a href="#home">首页</a></li>
+        <li>
+            <a href="#about">关于我们</a>
+            <ul>
+                <li><a href="#company">公司简介</a></li>
+                <li><a href="#team">团队</a></li>
+                <li><a href="#history">历史</a></li>
+            </ul>
+        </li>
+        <li><a href="#products">产品</a></li>
+        <li><a href="#services">服务</a></li>
+        <li><a href="#contact">联系我们</a></li>
+    </ul>
+</nav>
+
+<div id="home" class="content">
+    <h1>首页</h1>
+    <p>欢迎访问我们的官网！</p>
+    <h1>首页</h1>
+    <p>欢迎访问我们的官网！</p>    <h1>首页</h1>
+    <p>欢迎访问我们的官网！</p>    <h1>首页</h1>
+    <p>欢迎访问我们的官网！</p>    <h1>首页</h1>
+    <p>欢迎访问我们的官网！</p>    <h1>首页</h1>
+    <p>欢迎访问我们的官网！</p>    <h1>首页</h1>
+    <p>欢迎访问我们的官网！</p>    <h1>首页</h1>
+    <p>欢迎访问我们的官网！</p>    <h1>首页</h1>
+    <p>欢迎访问我们的官网！</p>    <h1>首页</h1>
+    <p>欢迎访问我们的官网！</p>    <h1>首页</h1>
+    <p>欢迎访问我们的官网！</p>    <h1>首页</h1>
+    <p>欢迎访问我们的官网！</p>    <h1>首页</h1>
+    <p>欢迎访问我们的官网！</p>    <h1>首页</h1>
+    <p>欢迎访问我们的官网！</p>    <h1>首页</h1>
+    <p>欢迎访问我们的官网！</p>    <h1>首页</h1>
+    <p>欢迎访问我们的官网！</p>    <h1>首页</h1>
+    <p>欢迎访问我们的官网！</p>    <h1>首页</h1>
+    <p>欢迎访问我们的官网！</p>    <h1>首页</h1>
+    <p>欢迎访问我们的官网！</p>    <h1>首页</h1>
+    <p>欢迎访问我们的官网！</p>    <h1>首页</h1>
+    <p>欢迎访问我们的官网！</p>    <h1>首页</h1>
+    <p>欢迎访问我们的官网！</p>    <h1>首页</h1>
+    <p>欢迎访问我们的官网！</p>    <h1>首页</h1>
+    <p>欢迎访问我们的官网！</p>    <h1>首页</h1>
+    <p>欢迎访问我们的官网！</p>    <h1>首页</h1>
+    <p>欢迎访问我们的官网！</p>    <h1>首页</h1>
+    <p>欢迎访问我们的官网！</p>    <h1>首页</h1>
+    <p>欢迎访问我们的官网！</p>    <h1>首页</h1>
+    <p>欢迎访问我们的官网！</p>
+</div>
+
+<div id="about" class="content hidden">
+    <h1>关于我们</h1>
+    <p>这里是关于我们的信息。</p>
+</div>
+
+<div id="company" class="content hidden">
+    <h2>公司简介</h2>
+    <p>我们的公司成立于...</p>
+</div>
+
+<div id="team" class="content hidden">
+    <h2>团队</h2>
+    <p>我们的团队由专业人士组成。</p>
+</div>
+
+<div id="history" class="content hidden">
+    <h2>历史</h2>
+    <p>公司的发展历史。</p>
+</div>
+
+<div id="products" class="content hidden">
+    <h1>产品</h1>
+    <p>我们提供的产品。</p>
+</div>
+
+<div id="services" class="content hidden">
+    <h1>服务</h1>
+    <p>我们提供的服务。</p>
+</div>
+
+<div id="contact" class="content hidden">
+    <h1>联系我们</h1>
+    <p>如何联系我们。</p>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function(event) {
+        var navLinks = document.querySelectorAll("nav ul li a");
+        navLinks.forEach(function(link) {
+            link.addEventListener("click", function() {
+                var targetId = link.getAttribute("href").substring(1);
+                var targetElement = document.getElementById(targetId);
+                var contents = document.querySelectorAll(".content");
+                contents.forEach(function(content) {
+                    content.classList.add("hidden");
+                });
+                targetElement.classList.remove("hidden");
+            });
+        });
+    });
+</script>
+
+</body>
+</html>

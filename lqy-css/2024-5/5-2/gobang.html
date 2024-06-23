@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <style>
+    .box {
+      width: 700px;
+      height: 700px;
+      margin: 10vh auto;
+      border: 1px solid #000;
+      background-color: burlywood;
+      display: flex;
+      flex-wrap: wrap;
+      position: relative;
+    }
+    .cell {
+      width: 50px;
+      height: 50px;
+      border: 1px solid #000;
+      box-sizing: border-box;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    .chessboard {
+      width: 750px;
+      height: 750px;
+      display: flex;
+      flex-wrap: wrap;
+      position: absolute;
+      top: -25px;
+      left: -25px;
+    }
+    .chess-box {
+      width: 50px;
+      height: 50px;
+      box-sizing: border-box;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    .chess-box:hover {
+      border: 1px solid #000;
+      animation: playChess 1s infinite;
+    }
+    .chess {
+      width: 80%;
+      height: 80%;
+      border-radius: 50%;
+      box-sizing: border-box;
+      background-color: #000;
+      transform: scale(1);
+      animation: playChess 0.5s;
+    }
+
+    @keyframes playChess {
+      0% {
+        transform: scale(1);
+      }
+      50% {
+        transform: scale(1.2);
+      }
+      100% {
+        transform: scale(1);
+      }
+    }
+  </style>
+  <body>
+    <div class="root">
+      <div class="box">
+        <div class="chessboard"></div>
+      </div>
+    </div>
+  </body>
+  <script>
+    let player = 0;
+    let chess_data = [];
+    for (let i = 0; i < 255; i++) {
+      chess_data.push(-1);
+    }
+    function checkFiveInRow(board, index) {
+      const SIZE = 15;
+      const directions = [
+        [
+          [-1, 0],
+          [1, 0],
+        ],
+        [
+          [0, -1],
+          [0, 1],
+        ],
+        [
+          [-1, -1],
+          [1, 1],
+        ],
+        [
+          [-1, 1],
+          [1, -1],
+        ],
+      ];
+      const [x, y] = [index % SIZE, Math.floor(index / SIZE)];
+      for (let dir of directions) {
+        let count = 1;
+        for (let d of dir) {
+          let newX = x,
+            newY = y;
+          for (let i = 1; i <= 4; i++) {
+            newX += d[0];
+            newY += d[1];
+            if (newX < 0 || newX >= SIZE || newY < 0 || newY >= SIZE) break;
+            if (board[newY * SIZE + newX] === board[index]) {
+              count++;
+              if (count === 5) return true;
+            } else {
+              break;
+            }
+          }
+        }
+      }
+      return false;
+    }
+
+    let box = document.querySelector(".box");
+    let count = 196;
+    for (let i = 0; i < count; i++) {
+      let div = document.createElement("div");
+      div.className = "cell";
+      box.appendChild(div);
+    }
+    let chessboard = document.querySelector(".chessboard");
+    count = 225;
+    for (let i = 0; i < count; i++) {
+      let chess_box = document.createElement("div");
+      chess_box.className = "chess-box";
+      chess_box.addEventListener("click", function () {
+        if (chess_box.children.length != 0) {
+          return;
+        }
+        let chess = document.createElement("div");
+        chess.className = "chess";
+        if (player % 2 == 0) {
+          chess.style.backgroundColor = "black";
+          chess.style.border = "2px solid white";
+        } else {
+          chess.style.backgroundColor = "white";
+          chess.style.border = "2px solid black";
+        }
+        this.appendChild(chess);
+        chess_data[i] = player % 2;
+        if (checkFiveInRow(chess_data, i)) {
+          alert(`${player % 2 == 0 ? "黑棋胜利" : "白棋胜利"}`);
+        }
+        player++;
+      });
+      chessboard.appendChild(chess_box);
+    }
+  </script>
+</html>

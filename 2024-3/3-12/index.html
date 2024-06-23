@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <!DOCTYPE html>
+    <html lang="en">
+      <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>用户信息表单</title>
+      </head>
+      <body>
+        <form action="/submit_info" method="POST">
+          <!-- 生日选择 -->
+          <label for="birthday_year">出生年份：</label>
+          <select id="birthday_year" name="birthday_year">
+            <!-- 仅列出几个示例年份，实际应用中可能需要动态生成 -->
+            <option value="1990">1990</option>
+            <option value="1995">1995</option>
+            <option value="2000">2000</option>
+            <!-- ... 其他年份选项 -->
+          </select>
+
+          <label for="birthday_month">出生月份：</label>
+          <select id="birthday_month" name="birthday_month">
+            <option value="01">01 - 一月</option>
+            <option value="02">02 - 二月</option>
+            <!-- ... 其他月份选项 -->
+            <option value="12">12 - 十二月</option>
+          </select>
+
+          <label for="birthday_day">出生日期：</label>
+          <select id="birthday_day" name="birthday_day">
+            <option value="01">01</option>
+            <option value="02">02</option>
+            <!-- ... 其他日期选项 -->
+            <option value="31">31</option>
+          </select>
+
+          <!-- 性别选择 -->
+          <br /><br />
+          <label for="gender">请选择您的性别：</label>
+          <input type="radio" id="male" name="gender" value="male" />
+          <label for="male">男</label>
+          <input type="radio" id="female" name="gender" value="female" />
+          <label for="female">女</label>
+          <!-- 可根据需求添加其他性别选项 -->
+
+          <br /><br />
+          <input type="submit" value="提交" />
+        </form>
+      </body>
+    </html>
+  </body>
+</html>

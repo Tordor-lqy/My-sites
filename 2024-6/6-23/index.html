@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>首页</title>
+    <style>
+      a {
+        color: white;
+        text-decoration: none;
+      }
+      body {
+        padding: 0;
+        margin: 0;
+        background-color: #fff6e3;
+      }
+      .nav {
+        display: flex;
+        gap: 20px;
+        width: 100%;
+        height: 50px;
+        background-color: rgba(0, 0, 0, 0.5);
+        font-family: "Courier New", Courier, monospace;
+      }
+      .nav > .item {
+        width: 20%;
+        text-align: center;
+        line-height: 50px;
+        color: white;
+        cursor: pointer;
+        transition: all 0.3s ease;
+      }
+      .item:hover {
+        background-color: rgba(0, 0, 0, 0.7);
+      }
+      .carousel {
+        width: 1300px;
+        margin: 0 auto;
+        margin-top: 30px;
+      }
+      .carousel > img {
+        width: 100%;
+        /* 根据宽度缩放 */
+        
+
+        display: block;
+      }
+      .recommend {
+        width: 90vw;
+        padding: 20px;
+        padding-top: 10px;
+        background-color: white;
+        border-radius: 10px;
+        box-shadow: 1px 1px 5px 2px rgba(0, 0, 0, 0.2);
+        margin: 0 auto;
+        margin-top: 30px;
+      }
+      .re-content {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        width: 100%;
+        margin: 0 auto;
+        margin-top: 20px;
+        align-items: center;
+        gap: 20px;
+      }
+      .card {
+        width: 220px;
+        height: 250px;
+        background-color: #ffffff;
+        box-shadow: 1px 1px 3px 1px rgba(0, 0, 0, 0.2);
+        border-radius: 10px;
+        position: relative;
+        border: 2px solid white;
+      }
+      .card:hover {
+        border: 2px solid orange;
+      }
+      .card > img {
+        display: block;
+        width: 200px;
+        height: 200px;
+        margin: 0 auto;
+        margin-top: 3px;
+        border-radius: 5px;
+      }
+      .card > .info {
+        width: 130px;
+        margin: 2px auto;
+      }
+      .info > .name {
+        font-size: 12px;
+      }
+      .info > .price {
+        font-size: 14px;
+        color: rgb(174, 13, 13);
+      }
+      .info > .price::after {
+        content: "￥";
+      }
+      .details {
+        display: none;
+        position: absolute;
+        top: 0;
+        left: 0;
+        background: #fff;
+        border: 1px solid #ccc;
+        padding: 10px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        z-index: 1000;
+      }
+      .product-info {
+        position: absolute;
+        display: flex;
+        flex-wrap: wrap;
+        z-index: 1000;
+        /* gap: 10px; */
+        background: #fff;
+        border: 1px solid #ccc;
+        padding: 10px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        white-space: nowrap;
+      }
+
+      .product-item {
+        /* display: inline-block; */
+        margin-right: 10px;
+        margin-bottom: 20px;
+      }
+
+      .product-item img {
+        width: 50px;
+        height: 50px;
+        margin-right: 5px;
+        border-radius: 5px;
+        vertical-align: middle;
+      }
+
+      .product-details {
+        display: inline-block;
+        vertical-align: middle;
+        font-size: 14px;
+        color: #333;
+        line-height: 1.4;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="nav">
+      <div class="item">
+        <a href="./index.html">首页</a>
+      </div>
+      <div class="item">服饰</div>
+      <div class="item">美妆</div>
+      <div class="item" id="recently-viewed">最近浏览</div>
+      <div class="item" id="recently-favorited">最近收藏</div>
+      <div class="item">
+        <a href="./cart.html">购物车</a>
+      </div>
+    </div>
+    <div class="product-info" id="product-info"></div>
+    <div class="content">
+      <div class="carousel">
+        <img src="https://img.zcool.cn/tubelocation/803a66754d6ccd02ad10003119a6.jpg??imageMogr2/format/webp" alt="" />
+      </div>
+      <div class="recommend">
+        <div>推荐商品</div>
+        <hr />
+        <div class="re-content" id="recommend-content">
+
+          <!-- <div class="card">
+            <img src="" alt="" />
+            <div class="info">
+              <div class="name">测试测试测试</div>
+              <div class="price">111</div>
+            </div>
+          </div> -->
+
+        </div>
+      </div>
+    </div>
+    <div class="footer"></div>
+    <div class="details" id="details"></div>
+    <script>
+      //---------------------------------------------------------------------
+      // 生成女装商品
+      const imgs = [
+        "https://img.alicdn.com/imgextra/i4/47183149/O1CN01WqBrTd1Z8HxODMBZp_!!0-saturn_solar.jpg_.webp",
+        "https://g-search3.alicdn.com/img/bao/uploaded/i4/i3/3501738662/O1CN01wTMD072DrFXagDXWt_!!0-item_pic.jpg_.webp",
+        "https://g-search1.alicdn.com/img/bao/uploaded/i4/i2/2122198064/O1CN01qYfKG729RMpoPbL4V_!!0-item_pic.jpg_.webp",
+        "https://g-search3.alicdn.com/img/bao/uploaded/i4/i2/719851228/O1CN01MLx3Mq1KwTEwAR1EC_!!719851228.jpg_.webp",
+        "https://img.alicdn.com/imgextra/i3/97545415/O1CN01I8iFco1ps7OyV1gnv_!!0-saturn_solar.jpg_.webp",
+        "https://gw.alicdn.com/imgextra/O1CN01sPIphv1mQEhQ7JIRO_!!2206588314948-0-C2M.jpg_.webp",
+        "https://gw.alicdn.com/imgextra/O1CN011WLanE1mQEhBtyIeV_!!2206588314948-0-C2M.jpg_.webp",
+        "https://g-search1.alicdn.com/img/bao/uploaded/i4/i3/920063449/O1CN01HHfmVJ1bLgzncq2LI_!!920063449.jpg_.webp",
+        "https://img.alicdn.com/imgextra/i4/97545415/O1CN0136RsMK1ps7TkxdvGC_!!0-saturn_solar.jpg_.webp",
+        "https://gw.alicdn.com/imgextra/O1CN01rGlmO11mQEhR8jGU3_!!2206588314948-0-C2M.jpg_.webp",
+        "https://g-search3.alicdn.com/img/bao/uploaded/i4/i1/2215909575909/O1CN01lWfqFO1tWNJW0NftR_!!0-item_pic.jpg_.webp",
+        "https://gw.alicdn.com/imgextra/O1CN01QYLOjt2LY1zV6aFLT_!!3937219703-0-C2M.jpg_.webp",
+        "https://gw.alicdn.com/imgextra/O1CN01zlaImB1h1tZLBMBwq_!!2206584264218-0-C2M.jpg_.webp",
+        "https://img.alicdn.com/imgextra/i1/16745738/O1CN0186V8XS1sG3NF8fsDn_!!0-saturn_solar.jpg_.webp",
+        "https://g-search3.alicdn.com/img/bao/uploaded/i4/i1/2217205998496/O1CN01V3sW9Y2CdDw7a7gcn_!!0-item_pic.jpg_.webp",
+        "https://gw.alicdn.com/imgextra/O1CN01xLymIz2LY1zKyFGHp_!!3937219703-0-C2M.jpg_.webp",
+        "https://gw.alicdn.com/imgextra/O1CN01i3ZiNO2LY1zKO6Jxu_!!3937219703-0-C2M.jpg_.webp",
+        "https://img.alicdn.com/imgextra/i1/487360020/O1CN01cheWOA1C1CsHAkD15_!!0-saturn_solar.jpg_.webp",
+        "https://g-search3.alicdn.com/img/bao/uploaded/i4/i4/3823631952/O1CN011xAVTX1QI45RDTXvf_!!3823631952.jpg_.webp",
+        "https://g-search2.alicdn.com/img/bao/uploaded/i4/i3/719851228/O1CN01Rzt4Bk1KwT9GbgPIU_!!719851228.jpg_.webp",
+        "https://g-search3.alicdn.com/img/bao/uploaded/i4/i1/2950754409/O1CN01HAsQgT1iRNBsCG5Zc_!!0-item_pic.jpg_.webp",
+        "https://g-search2.alicdn.com/img/bao/uploaded/i4/i1/2213288309/O1CN01MxrKms2BFZsD9cr9y_!!0-item_pic.jpg_.webp",
+        "https://img.alicdn.com/imgextra/i1/26121140/O1CN01flzOs21KIAKpqFloX_!!0-saturn_solar.jpg_.webp",
+        "https://g-search3.alicdn.com/img/bao/uploaded/i4/i4/2132122429/O1CN01nqzW0j1ToX0My3GR5_!!0-item_pic.jpg_.webp",
+        "https://g-search1.alicdn.com/img/bao/uploaded/i4/i3/3068391740/O1CN01KgUGS31Oiy7GP8b2T_!!3068391740.jpg_.webp",
+        "https://g-search1.alicdn.com/img/bao/uploaded/i4/i3/2206584084866/O1CN019qX3ZC1logCjLPFQk_!!2206584084866.jpg_.webp",
+        "https://img.alicdn.com/imgextra/i2/124643983/O1CN01HsoSRG1fIGNgEY1vT_!!0-saturn_solar.jpg_.webp",
+        "https://gw.alicdn.com/imgextra/O1CN01fs6Gig2LY1zJ0cG2z_!!3937219703-0-C2M.jpg_.webp",
+        "https://g-search3.alicdn.com/img/bao/uploaded/i4/i1/4074973052/O1CN01CxcP331YPrjw371Rn_!!0-item_pic.jpg_.webp",
+        "https://g-search3.alicdn.com/img/bao/uploaded/i4/i2/2215909575909/O1CN017T3q5O1tWNJTXNodO_!!0-item_pic.jpg_.webp",
+        "https://g-search3.alicdn.com/img/bao/uploaded/i4/i2/2213288309/O1CN01RpcS5Q2BFZs92xeN2_!!0-item_pic.jpg_.webp",
+        "https://img.alicdn.com/imgextra/i1/4708185656/O1CN01Dq3xq21reV7CGlOCf_!!0-saturn_solar.jpg_.webp",
+        "https://g-search1.alicdn.com/img/bao/uploaded/i4/i3/3068391740/O1CN015Riun21Oiy7EfjL46_!!3068391740.jpg_.webp",
+        "https://gw.alicdn.com/imgextra/O1CN01MOPda72LY1zVkYPb0_!!3937219703-0-C2M.jpg_.webp",
+        "https://g-search2.alicdn.com/img/bao/uploaded/i4/i2/2623860987/O1CN01vPwSeq1JA5sYrFoxj_!!2623860987.jpg_.webp",
+        "https://img.alicdn.com/imgextra/i3/43432031/O1CN015LqNaR1QsFNKnBpcV_!!0-saturn_solar.jpg_.webp",
+        "https://g-search2.alicdn.com/img/bao/uploaded/i4/i2/2455352241/O1CN01gdcgHF1SQQY09VzQd_!!0-item_pic.jpg_.webp",
+        "https://g-search3.alicdn.com/img/bao/uploaded/i4/i4/3584081854/O1CN01FNhqsI1PZB38blu9C_!!3584081854.jpg_.webp",
+        "https://g-search3.alicdn.com/img/bao/uploaded/i4/i1/1610897703/O1CN01hMg53a26m1isaPT4m_!!1610897703.jpg_.webp",
+        "https://gw.alicdn.com/imgextra/O1CN0112P7ZN1mQEhGeXF6C_!!2206588314948-0-C2M.jpg_.webp",
+      ];
+
+      const recommendContent = document.getElementById("recommend-content");
+      const details = document.getElementById("details");
+
+      imgs.forEach((img, index) => {
+        const card = document.createElement("div");
+        card.classList.add("card");
+
+        const imgElement = document.createElement("img");
+        imgElement.src = img;
+        imgElement.alt = "Product Image";
+
+        const info = document.createElement("div");
+        info.classList.add("info");
+
+        const name = document.createElement("div");
+        name.classList.add("name");
+        name.textContent = "女装商品" + (index + 1);
+
+        const price = document.createElement("div");
+        price.classList.add("price");
+        price.textContent = Math.floor(Math.random() * 101) + 100;
+
+        info.appendChild(name);
+        info.appendChild(price);
+
+        card.appendChild(imgElement);
+        card.appendChild(info);
+
+        card.addEventListener("mouseenter", (e) => {
+          details.style.display = "block";
+          details.innerHTML = `<div><strong>${name.textContent}</strong></div><div>${price.textContent}￥</div>`;
+        });
+
+        card.addEventListener("mousemove", (e) => {
+          details.style.left = e.pageX + 10 + "px";
+          details.style.top = e.pageY + 10 + "px";
+        });
+
+        card.addEventListener("mouseleave", () => {
+          details.style.display = "none";
+        });
+
+        recommendContent.appendChild(card);
+      });
+
+      //---------------------------------------------------------------------
+      // 最近浏览和最近收藏添加显示显示商品的功能
+
+      const recentlyViewed = document.getElementById("recently-viewed");
+      const recentlyFavorited = document.getElementById("recently-favorited");
+
+      function generateRandomProductInfo() {
+        const numProducts = 5;
+        const products = [];
+
+        for (let i = 0; i < numProducts; i++) {
+          const productName = "商品" + (i + 1);
+          const productPrice = Math.floor(Math.random() * 101) + 100;
+          const productImage = imgs[Math.floor(Math.random() * imgs.length)]; // Random product image URL
+          products.push(`
+            <div class="product-item">
+                <img src="${productImage}" alt="${productName}" />
+                <div class="product-details">
+                    <strong>${productName}</strong>
+                    <div>${productPrice}￥</div>
+                </div>
+            </div>
+        `);
+        }
+
+        return products.join("");
+      }
+
+      recentlyViewed.addEventListener("mouseenter", (e) => {
+        const productInfo = generateRandomProductInfo();
+        document.getElementById("product-info").innerHTML = productInfo;
+        document.getElementById("product-info").style.display = "block";
+        document.addEventListener("mousemove", followMouse);
+      });
+
+      recentlyViewed.addEventListener("mouseleave", () => {
+        document.getElementById("product-info").style.display = "none";
+        document.removeEventListener("mousemove", followMouse);
+      });
+
+      recentlyFavorited.addEventListener("mouseenter", (e) => {
+        const productInfo = generateRandomProductInfo();
+        document.getElementById("product-info").innerHTML = productInfo;
+        document.getElementById("product-info").style.display = "block";
+        document.addEventListener("mousemove", followMouse);
+      });
+
+      recentlyFavorited.addEventListener("mouseleave", () => {
+        document.getElementById("product-info").style.display = "none";
+        document.removeEventListener("mousemove", followMouse);
+      });
+
+      function followMouse(e) {
+        const productInfo = document.getElementById("product-info");
+        const xOffset = 20;
+        const yOffset = 20;
+
+        productInfo.style.left = e.pageX + xOffset + "px";
+        productInfo.style.top = e.pageY + yOffset + "px";
+      }
+    </script>
+  </body>
+</html>

@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<!--
+	Landed by HTML5 UP
+	html5up.net | @ajlkn
+	Free for personal and commercial use under the CCA 3.0 license (html5up.net/license)
+-->
+<html>
+
+<head>
+  <title>报名成功</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+  <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+  <link rel="stylesheet" href="assets/css/main.css" />
+  <noscript>
+    <link rel="stylesheet" href="assets/css/noscript.css" />
+  </noscript>
+</head>
+
+<body>
+  <div id="app">
+    <div id="page-wrapper">
+      <!-- Header -->
+      <header id="header">
+        <h1 id="logo"><a href="index.html">三鼎</a></h1>
+        <nav id="nav">
+          <ul>
+            <li><a href="index.html">首页</a></li>
+            <li><a href="about.html">部门</a></li>
+            <li><a href="#" class="button primary">加入我们</a></li>
+          </ul>
+        </nav>
+      </header>
+
+      <div id="main" class="wrapper style1">
+        <div class="container">
+          <header class="major">
+            <h2>提交成功</h2>
+            <p>{{ name }} 期待你的加入</p>
+          </header>
+
+          <h3 style="
+                display: flex;
+                align-content: center;
+                justify-content: center;
+              ">
+            扫描二维码加入招新交流群
+        </h3>
+
+          <div style="
+          display: flex;
+          align-content: center;
+          justify-content: center;
+        ">
+            后续笔试及面试信息将在招新群中发布
+          </div>
+
+        </div>
+        <br />
+        <div style="
+                display: flex;
+                align-content: center;
+                justify-content: center;
+              ">
+          <img style="width: 300px" src="https://lqy-other.oss-cn-beijing.aliyuncs.com/sanding/SignQQ.png" alt="" />
+        </div>
+
+      </div>
+    </div>
+  </div>
+  </div>
+  <script src="assets/js/jquery.min.js"></script>
+  <script src="assets/js/jquery.scrolly.min.js"></script>
+  <script src="assets/js/jquery.dropotron.min.js"></script>
+  <script src="assets/js/jquery.scrollex.min.js"></script>
+  <script src="assets/js/browser.min.js"></script>
+  <script src="assets/js/breakpoints.min.js"></script>
+  <script src="assets/js/util.js"></script>
+  <script src="assets/js/main.js"></script>
+</body>
+
+<script>
+  const { createApp } = Vue;
+  createApp({
+    data() {
+      return {
+        name: "",
+        henau_number: "",
+      };
+    },
+    methods: {
+      getParam(var_name) {
+        var query = window.location.search.substring(1);
+        var vars = query.split("&");
+        for (var i = 0; i < vars.length; i++) {
+          var pair = vars[i].split("=");
+          if (pair[0] == var_name) {
+            return pair[1];
+          }
+        }
+        return false;
+      },
+
+      getSigInfo() {
+        //   var axios = require("axios");
+
+        var config = {
+          method: "get",
+          url:
+            "http://ai.tordor.top:58354/sanding/sign/number/query?henau_number=" +
+            this.henau_number,
+          headers: {
+            //   "User-Agent": "Apifox/1.0.0 (https://apifox.com)",
+          },
+        };
+
+        let that = this;
+
+        axios(config)
+          .then(function (response) {
+            //   console.log(JSON.stringify(response.data));
+            that.name = response.data.data[0].name;
+          })
+          .catch(function (error) {
+            console.log(error);
+          });
+      },
+    },
+    created() {
+      this.henau_number = this.getParam("henau_number");
+
+      this.getSigInfo();
+    },
+  }).mount("#app");
+</script>
+
+</html>

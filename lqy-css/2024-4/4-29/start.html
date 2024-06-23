@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <style>
+    body {
+      width: 100%;
+      height: 80vh;
+      margin: 0px;
+      padding: 0px;
+      background-color: black;
+    }
+    .title {
+      width: 600px;
+      height: 100px;
+      margin: 40vh auto;
+      color: white;
+      font-size: 60px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      text-shadow: 1px 1px 10px white;
+    }
+    .left {
+      width: 300px;
+      text-align: end;
+      overflow: hidden;
+    }
+    .lc {
+      animation: moveLeft 2s linear;
+    }
+    .line {
+      width: 20px;
+    }
+    .l {
+      width: 1px;
+      height: 0px;
+      background-color: white;
+      margin: 0 auto;
+      animation: longer 3s;
+    }
+    .right {
+      width: 300px;
+      overflow: hidden;
+    }
+    .rc{
+        animation: moveRight 2s linear;
+    }
+
+    @keyframes longer {
+      0% {
+        height: 0px;
+      }
+      30% {
+        height: 100px;
+      }
+      70% {
+        height: 100px;
+      }
+      100% {
+        height: 0px;
+      }
+    }
+
+    @keyframes moveLeft {
+        0% {
+            transform: translateX(300px);
+            text-shadow: 1px 1px 1px white;
+        }
+        30%{
+            transform: translateX(300px);
+            text-shadow: 1px 1px 1px white;
+        }
+        100% {
+            transform: translateX(0px);
+            text-shadow: 1px 1px 10px white;
+        }
+    }
+    @keyframes moveRight {
+        0% {
+            transform: translateX(-300px);
+            text-shadow: 1px 1px 1px white;
+        }
+        30% {
+            transform: translateX(-300px);
+            text-shadow: 1px 1px 1px white;
+        }
+        100% {
+            transform: translateX(0px);
+            text-shadow: 1px 1px 10px white;
+        }
+    }
+  </style>
+  <body>
+    <div class="title">
+      <div class="left">
+        <div class="lc">Hello</div>
+      </div>
+      <div class="line">
+        <div class="l"></div>
+      </div>
+      <div class="right">
+        <div class="rc">World</div>
+      </div>
+    </div>
+  </body>
+</html>

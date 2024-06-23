@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>购物车</title>
+    <style>
+      a {
+        color: white;
+        text-decoration: none;
+      }
+      body {
+        padding: 0;
+        margin: 0;
+        background-color: #fff6e3;
+      }
+      .nav {
+        display: flex;
+        gap: 20px;
+        width: 100%;
+        height: 50px;
+        background-color: rgba(0, 0, 0, 0.5);
+        font-family: "Courier New", Courier, monospace;
+      }
+
+      .nav > .item {
+        width: 20%;
+        text-align: center;
+        line-height: 50px;
+        color: white;
+        cursor: pointer;
+        transition: all 0.3s ease;
+      }
+
+      .nav > .item:hover {
+        background-color: rgba(0, 0, 0, 0.7);
+      }
+      .content {
+        width: 800px;
+        margin: 0 auto;
+      }
+      .content > .goods {
+        width: 800px;
+        margin: 0 auto;
+        margin-top: 20px;
+        background-color: white;
+        border-radius: 10px;
+        box-shadow: 1px 1px 3px 1px rgba(0, 0, 0, 0.3);
+        padding: 10px;
+        cursor: pointer;
+      }
+      .goods > .title {
+        display: flex;
+        padding-bottom: 10px;
+        margin-bottom: 20px;
+        border-bottom: 1px solid gray;
+      }
+      .title > .item {
+        width: 17%;
+        text-align: center;
+        font-family: "Courier New", Courier, monospace;
+      }
+
+      .goods > .item {
+        display: flex;
+        height: 110px;
+        margin-top: 20px;
+        padding-bottom: 10px;
+        border-bottom: 1px solid gray;
+      }
+
+      .goods > .item > * {
+        width: 20%;
+        text-align: center;
+        line-height: 110px;
+        cursor: pointer;
+        font-family: "Courier New", Courier, monospace;
+      }
+      .goods > .item > .price {
+        color: rgb(184, 6, 6);
+      }
+      .goods > .item > .price::after {
+        content: "￥";
+      }
+      .goods > .item > .inp > input[type="number"] {
+        width: 40px;
+        height: 18px;
+      }
+
+      .goods > .item > .check > input {
+        transform: scale(1.5);
+      }
+
+      .goods > .item > .image > img {
+        width: 100px;
+        height: 100px;
+      }
+      .goods > .item > .del-btn {
+        color: red;
+      }
+      .goods > .total {
+        display: flex;
+        height: 110px;
+      }
+
+      .total > * {
+        width: 17%;
+        line-height: 110px;
+        text-align: center;
+        font-family: "Courier New", Courier, monospace;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="nav">
+      <div class="item">
+        <a href="./index.html">首页</a>
+      </div>
+      <div class="item">服饰</div>
+      <div class="item">美妆</div>
+      <div class="item">最近浏览</div>
+      <div class="item">最近收藏</div>
+      <div class="item">
+        <a href="./cart.html">购物车</a>
+      </div>
+    </div>
+
+    <div class="content">
+      <div class="goods">
+        <div class="total">
+          <div class="all">全选</div>
+          <div></div>
+          <div></div>
+          <div class="price">总价</div>
+          <div></div>
+          <div class="purchase">购买</div>
+        </div>
+        <div class="title">
+          <div class="item">选择</div>
+          <div class="item">图片</div>
+          <div class="item">商品名</div>
+          <div class="item">价格</div>
+          <div class="item">数量</div>
+          <div class="item">操作</div>
+        </div>
+        <!-- Dynamic items will be appended here -->
+        <!-- <div class="item">
+          <div class="check">
+            <input type="checkbox" name="" id="" />
+          </div>
+          <div class="image">
+            <img src="" alt="" />
+          </div>
+          <div class="name">测试测试测试</div>
+          <div class="price">19.99</div>
+          <div class="inp">
+            <input type="number" />
+          </div>
+          <div class="del-btn">删除</div>
+        </div> -->
+
+      </div>
+    </div>
+
+    <script>
+      const imgs = [
+        "https://img.alicdn.com/imgextra/i4/47183149/O1CN01WqBrTd1Z8HxODMBZp_!!0-saturn_solar.jpg_.webp",
+        "https://g-search3.alicdn.com/img/bao/uploaded/i4/i3/3501738662/O1CN01wTMD072DrFXagDXWt_!!0-item_pic.jpg_.webp",
+        "https://g-search1.alicdn.com/img/bao/uploaded/i4/i2/2122198064/O1CN01qYfKG729RMpoPbL4V_!!0-item_pic.jpg_.webp",
+        "https://g-search3.alicdn.com/img/bao/uploaded/i4/i2/719851228/O1CN01MLx3Mq1KwTEwAR1EC_!!719851228.jpg_.webp",
+        "https://img.alicdn.com/imgextra/i3/97545415/O1CN01I8iFco1ps7OyV1gnv_!!0-saturn_solar.jpg_.webp",
+        "https://gw.alicdn.com/imgextra/O1CN01sPIphv1mQEhQ7JIRO_!!2206588314948-0-C2M.jpg_.webp",
+        "https://gw.alicdn.com/imgextra/O1CN011WLanE1mQEhBtyIeV_!!2206588314948-0-C2M.jpg_.webp",
+        "https://g-search1.alicdn.com/img/bao/uploaded/i4/i3/920063449/O1CN01HHfmVJ1bLgzncq2LI_!!920063449.jpg_.webp",
+        "https://img.alicdn.com/imgextra/i4/97545415/O1CN0136RsMK1ps7TkxdvGC_!!0-saturn_solar.jpg_.webp",
+        "https://gw.alicdn.com/imgextra/O1CN01rGlmO11mQEhR8jGU3_!!2206588314948-0-C2M.jpg_.webp",
+      ];
+
+      const goodsContainer = document.querySelector(".goods");
+      const itemCount = Math.floor(Math.random() * 5) + 6; // Random number between 6 and 10
+
+      for (let i = 0; i < itemCount; i++) {
+        const item = document.createElement("div");
+        item.classList.add("item");
+
+        const checkboxDiv = document.createElement("div");
+        checkboxDiv.classList.add("check");
+        const checkbox = document.createElement("input");
+        checkbox.type = "checkbox";
+        checkboxDiv.appendChild(checkbox);
+
+        const imageDiv = document.createElement("div");
+        imageDiv.classList.add("image");
+        const img = document.createElement("img");
+        img.src = imgs[Math.floor(Math.random() * imgs.length)];
+        img.alt = "商品图片";
+        imageDiv.appendChild(img);
+
+        const nameDiv = document.createElement("div");
+        nameDiv.classList.add("name");
+        nameDiv.innerText = "商品名称" + (i + 1);
+
+        const priceDiv = document.createElement("div");
+        priceDiv.classList.add("price");
+        priceDiv.innerText = (Math.random() * 100 + 1).toFixed(2);
+
+        const quantityDiv = document.createElement("div");
+        quantityDiv.classList.add("inp");
+        const quantityInput = document.createElement("input");
+        quantityInput.type = "number";
+        quantityInput.value = 1;
+        quantityDiv.appendChild(quantityInput);
+
+        const deleteDiv = document.createElement("div");
+        deleteDiv.classList.add("del-btn");
+        deleteDiv.innerText = "删除";
+
+        item.appendChild(checkboxDiv);
+        item.appendChild(imageDiv);
+        item.appendChild(nameDiv);
+        item.appendChild(priceDiv);
+        item.appendChild(quantityDiv);
+        item.appendChild(deleteDiv);
+
+        goodsContainer.appendChild(item);
+      }
+      // 价格计算方法
+      const comput = () => {
+        const selectItem = document.querySelectorAll(".goods > .item");
+        var totalPrice = 0;
+        selectItem.forEach((item) => {
+          let checked = item.querySelector(".check input").checked;
+          let number = item.querySelector("input[type='number']").value;
+          number = String(number).trim().length === 0 ? 0 : number;
+          let price = item.querySelector(".price").innerText;
+          totalPrice += checked ? price * number : 0;
+        });
+        const priceEle = document.querySelector(".total .price");
+        priceEle.innerText = `总价:${totalPrice.toFixed(2)}元`;
+      };
+      comput();
+
+      // 全部选中方法
+      const allCheck = () => {
+        const selectItem = document.querySelectorAll(".goods > .item");
+        selectItem.forEach((item) => {
+          item.querySelector(".check input").checked = true;
+        });
+      };
+      const allUnCheck = () => {
+        const selectItem = document.querySelectorAll(".goods > .item");
+        selectItem.forEach((item) => {
+          item.querySelector(".check input").checked = false;
+        });
+      };
+      // 添加全选事件
+      document.querySelector(".total .all").addEventListener("click", () => {
+        let c = document.querySelector(".total .all");
+        if (c.innerText == "全不选") {
+          allUnCheck();
+          c.innerText = "全选";
+        } else {
+          allCheck();
+          c.innerText = "全不选";
+        }
+        comput();
+      });
+
+
+
+      // 数量改变时，重新计算价格
+      const allNumber = document.querySelectorAll("input[type='number']");
+      allNumber.forEach((item) => {
+        item.addEventListener("input", () => {
+          comput();
+        });
+      });
+
+      // 选中状态改变时，重新计算价格
+      const allBox = document.querySelectorAll("input[type='checkbox']");
+      allBox.forEach((item) => {
+        item.addEventListener("change", () => {
+          comput();
+        });
+      });
+
+      // 给删除按钮按钮添加方法
+      const selectItem = document.querySelectorAll(".goods > .item");
+      selectItem.forEach((item) => {
+        item.querySelector(".del-btn").addEventListener("click", () => {
+          item.remove();
+          comput();
+        });
+      });
+    </script>
+  </body>
+</html>

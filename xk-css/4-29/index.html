@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<style>
+    body{
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: 100vh;
+        background-color: #000;
+    }
+    .title{
+        color: #fff;
+        font-size: 120px;
+        font-weight: bold;
+        margin: 0 auto;
+        text-align: center;
+        line-height: 100vh;
+        font-family: 'Courier New', Courier, monospace;
+    }
+    .container{
+        width: 100%;
+        height: 100vh;
+        position: absolute;
+        top: 0;
+        font-size: 0px;
+    }
+    .box{
+        display: inline-block;
+        width: 30px;
+        height: 30px;
+        background-color: gray;
+        border: 2px solid #000;
+    }
+    .box.active{
+        background-color: green;
+        animation:move 3s linear forwards;
+    }
+    @keyframes move{
+        0%{
+            transform: translateY(0) rotate(0deg);
+        }
+        100%{
+            transform: translateY(100vh) rotate(360deg);
+        }
+    }
+</style>
+<body>
+    <div class="title">
+        HELLO WORLD
+    </div>
+    <div class="container">
+
+    </div>
+</body>
+</html>
+
+<script>
+    let container = document.querySelector('.container');
+    let count = 1500;
+    for(let i = 0; i < count; i++){
+        let box = document.createElement('div');
+        box.className = 'box';
+        container.appendChild(box);
+    }
+    let box = document.querySelectorAll('.box');
+    for(let i = 0; i < box.length; i++){
+        box[i].addEventListener('mouseover' , ()=>{
+          box[i].classList.add('active');
+        })
+    }
+</script>

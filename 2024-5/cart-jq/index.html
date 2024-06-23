@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.7.1/jquery.js"></script>
+</head>
+<style>
+    li{
+        cursor: pointer;
+        /* 设置字体无法选中 */
+        user-select: none;
+    }
+</style>
+<body>
+    <ul>
+
+    </ul>
+</body>
+</html>
+
+<script>
+    $(function(){
+        let lis = ['测试数据1'  , '测试数据2' , '测试数据3']
+        // 创建新元素
+        lis.forEach(item => {
+            var $newElement = $('<li>').text(item);
+                $newElement.click(function(){
+                    // 添加删除线
+                    $(this).css('text-decoration', 'line-through');
+                });
+                $newElement.dblclick(function(){
+                    // 移除删除线
+                    $(this).css('text-decoration', 'none');
+                });
+            // 将新元素添加到页面中
+            $('ul').append($newElement);
+        });
+
+
+
+
+
+    });
+
+
+
+</script>

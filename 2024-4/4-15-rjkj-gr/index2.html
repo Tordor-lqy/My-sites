@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+
+<style>
+
+.box{
+    width: 590px;
+    height: 500px;
+    margin: 10px auto;
+    border: 10px solid black;
+    overflow: hidden;
+}
+
+.imgs {
+    display: flex;
+}
+
+.opt:nth-child(2):hover .item:nth-child(2) {
+    position: relative;
+    left: -500px;
+}
+
+
+</style>
+
+
+  <body>
+    <div class="box">
+      <div class="imgs">
+        <div class="item"><img src="./q (1).jpg" alt=""></div>
+        <div class="item"><img src="./q (2).jpg" alt=""></div>
+        <div class="item"><img src="./q (3).jpg" alt=""></div>
+        <div class="item"><img src="./q (4).jpg" alt=""></div>
+      </div>
+
+      <div class="action">
+        <input type="radio" class="opt" />
+        <input type="radio" class="opt"/>
+        <input type="radio" class="opt" />
+        <input type="radio" class="opt" />
+      </div>
+    </div>
+  </body>
+
+</html>

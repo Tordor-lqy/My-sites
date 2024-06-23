@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>List with Movable Dialog</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
+      }
+      .list-container {
+        max-width: 600px;
+        margin: 0 auto;
+      }
+      .list-item {
+        padding: 10px 15px;
+        margin: 5px 0;
+        background: #f4f4f4;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: background 0.3s ease;
+      }
+      .list-item:hover {
+        background: #e0e0e0;
+      }
+      .dialog-content {
+        margin: 15px 0;
+      }
+      .dialog-content input,
+      .dialog-content select {
+        width: calc(100% - 22px);
+        padding: 10px;
+        margin: 5px 0;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+      }
+      .bar button,
+      .dialog-content button {
+        padding: 10px 15px;
+        margin-top: 10px;
+        border: none;
+        background-color: #007bff;
+        color: white;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: background 0.3s ease;
+      }
+
+      .dialog-content button:hover {
+        background-color: #0056b3;
+      }
+      .dialog-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .dialog-box {
+        background: white;
+        padding: 20px;
+        border-radius: 5px;
+        max-width: 500px;
+        width: 100%;
+        animation: fade-up 0.5s ease;
+      }
+      @keyframes fade-up {
+        0% {
+          transform: translateY(100vh);
+          opacity: 0;
+        }
+        100% {
+          transform: translateY(0);
+          opacity: 1;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app">
+      <div class="list-container">
+        <div class="bar" style="display: flex; justify-content: space-between">
+          <h2>DATABASE LIST</h2>
+          <button style="height: min-content" @click="openAddDBDialog">
+            Add DB
+          </button>
+        </div>
+        <div
+          v-for="db in dbList"
+          :key="db.db_id"
+          class="list-item"
+          @click="openDBDialog(db)"
+        >
+          {{db.db_type.toUpperCase()}} {{db.db_name}}/{{db.db_host}}
+        </div>
+      </div>
+      <div class="list-container">
+        <div class="bar" style="display: flex; justify-content: space-between">
+          <h2>API LIST</h2>
+          <button style="height: min-content" @click="addAPI">Add API</button>
+        </div>
+
+        <div
+          v-for="item in data"
+          :key="item.api_id"
+          class="list-item"
+          @click="openDialog(item)"
+        >
+          {{ item.api_method }} {{ item.api_uri }}
+        </div>
+      </div>
+
+      <div v-if="showDialog" class="dialog-overlay">
+        <div class="dialog-box">
+          <h3>接口信息</h3>
+          <div class="dialog-content">
+            <hr />
+            配置
+            <input
+              type="text"
+              v-model="dialogData.api_method"
+              placeholder="请求方法"
+            />
+            <input
+              type="text"
+              v-model="dialogData.api_uri"
+              placeholder="接口地址"
+            />
+            <input
+              type="text"
+              v-model="dialogData.api_sql"
+              placeholder="SQL语句"
+            />
+            <hr />
+            数据库
+            <select v-model="dialogData.api_db_id">
+              <option v-for="db in dbList" :key="db.db_id" :value="db.db_id">
+                {{ db.db_name }} - {{ db.db_host }}
+              </option>
+            </select>
+            <hr />
+            Query参数
+            <div class="qs">
+              <input
+                v-for="(query, index) in dialogData.api_query"
+                :key="index"
+                v-model="dialogData.api_query[index]"
+                placeholder="参数"
+              />
+            </div>
+            <div style="display: flex; justify-content: space-around">
+              <button @click="addQuery">Add Query</button>
+              <button @click="updateAPI">Confirm Update API</button>
+              <button @click="deleteAPI" style="background-color: red">
+                Delete
+              </button>
+              <button @click="testAPI" style="background-color: green">
+                Test
+              </button>
+              <button
+                @click="showDialog = false"
+                style="background-color: gray"
+              >
+                close
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div v-if="addAPIDialog" class="dialog-overlay">
+        <div class="dialog-box">
+          <h3>接口信息</h3>
+          <div class="dialog-content">
+            <hr />
+            配置
+            <input
+              type="text"
+              v-model="dialogData.api_method"
+              placeholder="请求方法"
+            />
+            <input
+              type="text"
+              v-model="dialogData.api_uri"
+              placeholder="接口地址"
+            />
+            <input
+              type="text"
+              v-model="dialogData.api_sql"
+              placeholder="SQL语句"
+            />
+            <hr />
+            数据库
+            <select v-model="dialogData.api_db_id">
+              <option v-for="db in dbList" :key="db.db_id" :value="db.db_id">
+                {{ db.db_name }} - {{ db.db_host }}
+              </option>
+            </select>
+            <hr />
+            变量 Query参数
+            <div class="qs">
+              <input
+                v-for="(query, index) in dialogData.api_query"
+                :key="index"
+                v-model="dialogData.api_query[index]"
+                placeholder="参数"
+              />
+            </div>
+            <div style="display: flex; justify-content: space-around">
+              <button @click="addQuery">Add Query</button>
+              <button @click="insertAPI">Confirm Add API</button>
+              <button @click="testAPI" style="background-color: green">
+                Test
+              </button>
+              <button
+                @click="addAPIDialog = false"
+                style="background-color: gray"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div v-if="showDBDialog" class="dialog-overlay">
+        <div class="dialog-box">
+          <h3>数据库信息</h3>
+          <div class="dialog-content">
+            <hr />
+            配置
+            <input
+              type="text"
+              v-model="dialogDBData.db_type"
+              placeholder="数据库类型"
+            />
+            <input
+              type="text"
+              v-model="dialogDBData.db_name"
+              placeholder="数据库名称"
+            />
+            <input
+              type="text"
+              v-model="dialogDBData.db_host"
+              placeholder="数据库地址"
+            />
+            <input
+              type="text"
+              v-model="dialogDBData.db_port"
+              placeholder="数据库端口"
+            />
+            <input
+              type="text"
+              v-model="dialogDBData.db_user"
+              placeholder="数据库用户名"
+            />
+            <input
+              type="password"
+              v-model="dialogDBData.db_password"
+              placeholder="数据库密码"
+            />
+            <hr />
+            <div style="display: flex; justify-content: space-around">
+              <button @click="updateDB">Confirm Update DB</button>
+              <button @click="deleteDB" style="background-color: red">
+                Delete
+              </button>
+              <button
+                @click="showDBDialog = false"
+                style="background-color: gray"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div v-if="addDBDialog" class="dialog-overlay">
+        <div class="dialog-box">
+          <h3>数据库信息</h3>
+          <div class="dialog-content">
+            <hr />
+            配置
+            <input
+              type="text"
+              v-model="dialogDBData.db_type"
+              placeholder="数据库类型"
+            />
+            <input
+              type="text"
+              v-model="dialogDBData.db_name"
+              placeholder="数据库名称"
+            />
+            <input
+              type="text"
+              v-model="dialogDBData.db_host"
+              placeholder="数据库地址"
+            />
+            <input
+              type="text"
+              v-model="dialogDBData.db_port"
+              placeholder="数据库端口"
+            />
+            <input
+              type="text"
+              v-model="dialogDBData.db_user"
+              placeholder="数据库用户名"
+            />
+            <input
+              type="password"
+              v-model="dialogDBData.db_password"
+              placeholder="数据库密码"
+            />
+            <hr />
+            <div style="display: flex; justify-content: space-around">
+              <button @click="addDB">Confirm Add DB</button>
+              <button
+                @click="addDBDialog = false"
+                style="background-color: gray"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
+<script src="https://cdn.jsdelivr.net/npm/js-base64@3.7.7/base64.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+<script>
+  new Vue({
+    el: "#app",
+    data: {
+      data: [],
+      dbList: [],
+      showDialog: false,
+      addAPIDialog: false,
+      dialogData: {
+        api_method: "",
+        api_uri: "",
+        api_sql: "",
+        api_db_id: "",
+        api_query: [],
+      },
+      dialogDBData: {
+        db_type: "",
+        db_name: "",
+        db_host: "",
+        db_port: "",
+        db_user: "",
+        db_password: "",
+      },
+      showDBDialog: false,
+      addDBDialog: false,
+    },
+    created() {
+      this.fetchData();
+      this.fetchDbList();
+    },
+    methods: {
+      fetchData() {
+        axios
+          .get("http://127.0.0.1:5000/super/get/all/api")
+          .then((response) => {
+            this.data = response.data;
+          })
+          .catch((error) => {
+            console.log(error);
+          });
+      },
+      fetchDbList() {
+        axios
+          .get("http://127.0.0.1:5000/super/get/all/database")
+          .then((response) => {
+            this.dbList = response.data;
+          })
+          .catch((error) => {
+            console.log(error);
+          });
+      },
+      deleteAPI() {
+        axios
+          .delete(
+            "http://127.0.0.1:5000/super/delete/api?api_config_id=" +
+              this.dialogData.api_config_id
+          )
+          .then((response) => {
+            this.fetchData();
+            this.showDialog = false;
+          })
+          .catch((error) => {
+            console.log(error);
+          });
+      },
+      updateAPI() {
+        apiBody = this.dialogData;
+        apiBody.api_query = Base64.encode(
+          JSON.stringify(
+            this.dialogData.api_query.filter((item) => item !== "")
+          )
+        );
+        axios
+          .post("http://127.0.0.1:5000/super/update/api", apiBody)
+          .then((response) => {
+            console.log(response.data);
+            this.fetchData();
+            this.showDialog = false;
+          })
+          .catch((error) => {
+            console.log(error);
+          });
+      },
+      testAPI() {
+        location.href = `http://127.0.0.1:5000/api${
+          this.dialogData.api_uri
+        }?${this.dialogData.api_query
+          .filter((item) => item !== "")
+          .join("=&")}`;
+      },
+      openDialog(item) {
+        this.dialogData = {
+          ...item,
+          api_query: JSON.parse(Base64.decode(item.api_query)),
+        };
+        this.showDialog = true;
+      },
+      addAPI() {
+        this.addAPIDialog = true;
+        this.dialogData = {
+          api_method: "",
+          api_uri: "",
+          api_sql: "",
+          api_db_id: "",
+          api_query: [],
+        };
+      },
+      insertAPI() {
+        apiBody = this.dialogData;
+        apiBody.api_query = Base64.encode(
+          JSON.stringify(
+            this.dialogData.api_query.filter((item) => item !== "")
+          )
+        );
+        axios
+          .post("http://127.0.0.1:5000/super/insert/api", apiBody)
+          .then((response) => {
+            console.log(response.data);
+            this.fetchData();
+            this.addAPIDialog = false;
+          })
+          .catch((error) => {
+            console.log(error);
+          });
+      },
+      addQuery() {
+        this.dialogData.api_query.push("");
+      },
+
+      openDBDialog(item) {
+        this.dialogDBData = {
+          ...item,
+        };
+        this.showDBDialog = true;
+      },
+      updateDB() {
+        axios
+          .post(
+            "http://127.0.0.1:5000/super/update/database",
+            this.dialogDBData
+          )
+          .then((response) => {
+            this.fetchDbList();
+            this.showDBDialog = false;
+          })
+          .catch((error) => {
+            console.log(error);
+          });
+      },
+      deleteDB(item) {
+        axios
+          .delete(
+            `http://127.0.0.1:5000/super/delete/database?db_id=${this.dialogDBData.db_id}`
+          )
+          .then((response) => {
+            this.fetchDbList();
+            this.showDBDialog = false;
+          })
+          .catch((error) => {
+            console.log(error);
+          });
+      },
+      addDB() {
+        axios
+          .post(
+            "http://127.0.0.1:5000/super/insert/database",
+            this.dialogDBData
+          )
+          .then((response) => {
+            this.fetchDbList();
+            this.addDBDialog = false;
+          })
+          .catch((error) => {
+            console.log(error);
+          });
+      },
+      openAddDBDialog() {
+        this.dialogDBData = {
+          db_name: "",
+          db_host: "",
+          db_port: "",
+          db_user: "",
+          db_password: "",
+        };
+        this.addDBDialog = true;
+      },
+    },
+  });
+</script>

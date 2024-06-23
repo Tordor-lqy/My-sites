@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<!--
+	Landed by HTML5 UP
+	html5up.net | @ajlkn
+	Free for personal and commercial use under the CCA 3.0 license (html5up.net/license)
+-->
+<html>
+  <head>
+    <title>加入三鼎工作室</title>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, user-scalable=no"
+    />
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <link rel="stylesheet" href="assets/css/main.css" />
+    <noscript>
+      <link rel="stylesheet" href="assets/css/noscript.css" />
+    </noscript>
+  </head>
+
+  <body class="is-preload">
+    <div id="app">
+      <div id="page-wrapper">
+        <!-- Header -->
+        <header id="header">
+          <h1 id="logo"><a href="index.html">三鼎</a></h1>
+          <nav id="nav">
+            <ul>
+              <li><a href="index.html">首页</a></li>
+              <li><a href="about.html">部门</a></li>
+              <li><a href="sign.html" class="button primary">加入我们</a></li>
+            </ul>
+          </nav>
+        </header>
+        <!-- Main -->
+        <div id="main" class="wrapper style1">
+          <div class="container">
+            <header class="major">
+              <h2>加入我们</h2>
+              <p>填写你的信息，我们会第一时间进行反馈</p>
+            </header>
+
+            <div class="row gtr-uniform gtr-50">
+              <!-- 姓名 -->
+
+              <div class="col-6 col-12-xsmall">
+                <input
+                  type="text"
+                  name="name"
+                  id="name"
+                  value=""
+                  v-model="name"
+                  placeholder="Name"
+                />
+              </div>
+
+              <!-- QQ -->
+
+              <div class="col-6 col-12-xsmall">
+                <input
+                  type="text"
+                  name="qq"
+                  id="qq"
+                  value=""
+                  v-model="qq"
+                  placeholder="QQ"
+                />
+              </div>
+
+              <!-- 邮箱 -->
+
+              <div class="col-12 col-12-xsmall">
+                <input
+                  type="text"
+                  name="email"
+                  id="email"
+                  value=""
+                  v-model="email"
+                  placeholder="Email"
+                />
+              </div>
+
+              <!-- 出生日期 -->
+
+              <div class="col-8 col-12-xsmall">
+                <input
+                  type="text"
+                  name="birthday"
+                  id="birthday"
+                  value=""
+                  v-model="birthday"
+                  placeholder="出生日期"
+                />
+              </div>
+
+              <!-- 籍贯 -->
+
+              <div class="col-4 col-12-xsmall">
+                <input
+                  type="text"
+                  name="native_place"
+                  id="native_place"
+                  value=""
+                  v-model="native_place"
+                  placeholder="籍贯"
+                />
+              </div>
+
+              <!-- 学号 -->
+
+              <div class="col-12 col-12-xsmall">
+                <input
+                  type="text"
+                  name="henau_number"
+                  id="henau_number"
+                  value=""
+                  v-model="henau_number"
+                  placeholder="学号"
+                />
+              </div>
+
+              <!-- 选择专业 -->
+
+              <div
+                :class=" professional_id == 0 ? 'col-12 col-12-xsmall' : 'col-4 col-12-xsmall' "
+              >
+                <select name="category" id="category" v-model="professional_id">
+                  <option :value="0">professional</option>
+                  <option
+                    v-for="item in professionals"
+                    :key="item.professional_id"
+                    :value="item.professional_id"
+                  >
+                    {{ item.name }}
+                  </option>
+                </select>
+              </div>
+
+              <!-- 选择班级 -->
+
+              <div v-if="professional_id != 0" class="col-8 col-12-xsmall">
+                <select name="category" id="category" v-model="class_id">
+                  <option :value="0">class</option>
+                  <option
+                    v-for="item in classes"
+                    :key="item.class_id"
+                    :value="item.class_id"
+                  >
+                    {{ item.name }}
+                  </option>
+                </select>
+              </div>
+
+              <!-- 选择部门 -->
+
+              <div class="col-8 col-12-xsmall">
+                <select name="category" id="category" v-model="department_id">
+                  <option :value="0">target department</option>
+                  <!-- <option value="1">Manufacturing</option> -->
+                  <option
+                    v-for="item in departments"
+                    :key="item.department_id"
+                    :value="item.department_id"
+                  >
+                    {{ item.name }}
+                  </option>
+                </select>
+              </div>
+
+              <!-- 调剂 -->
+
+              <div
+                class="col-4 col-12-xsmall"
+                style="
+                  display: flex;
+                  align-items: center;
+                  justify-content: center;
+                "
+              >
+                <input
+                  type="checkbox"
+                  id="obey_adjustment"
+                  name="obey_adjustment"
+                  v-model="obey_adjustment"
+                />
+                <label for="obey_adjustment">服从调剂</label>
+              </div>
+
+              <!-- 性别 -->
+
+              <div class="col-6 col-12-xsmall">
+                <input
+                  type="radio"
+                  id="gender-b"
+                  name="gender"
+                  :value="1"
+                  v-model="gender"
+                  checked
+                />
+                <label for="gender-b">boy</label>
+              </div>
+
+              <div class="col-6 col-12-xsmall">
+                <input
+                  type="radio"
+                  id="gender-g"
+                  :value="0"
+                  v-model="gender"
+                  name="gender"
+                />
+                <label for="gender-g">girl</label>
+              </div>
+
+              <!-- 相关信息 -->
+
+              <div class="col-12">
+                <textarea
+                  name="message"
+                  id="message"
+                  placeholder="其他信息, 例如: 1.现任职务 2.个人优势 3.所报部门...."
+                  rows="6"
+                  v-model="details"
+                ></textarea>
+              </div>
+
+              <!-- 提交和重置 -->
+
+              <div class="col-12">
+                <ul class="actions">
+                  <li>
+                    <input
+                      @click="submitSignForm()"
+                      type="submit"
+                      value="submit"
+                      class="primary"
+                    />
+                  </li>
+                  <li>
+                    <input @click="reload()" type="reset" value="Reset" />
+                  </li>
+                </ul>
+              </div>
+            </div>
+            <hr />
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="assets/js/jquery.min.js"></script>
+    <script src="assets/js/jquery.scrolly.min.js"></script>
+    <script src="assets/js/jquery.dropotron.min.js"></script>
+    <script src="assets/js/jquery.scrollex.min.js"></script>
+    <script src="assets/js/browser.min.js"></script>
+    <script src="assets/js/breakpoints.min.js"></script>
+    <script src="assets/js/util.js"></script>
+    <script src="assets/js/main.js"></script>
+  </body>
+
+  <script>
+
+    const { createApp } = Vue;
+
+    createApp({
+      data() {
+        return {
+          message: "Hello Vue!",
+
+          professionals: [],
+          classes: [],
+          departments: [],
+
+          birthday: "",
+          native_place: "",
+          obey_adjustment: 0,
+          name: "",
+          department_id: 0,
+          professional_id: 0,
+          class_id: 0,
+          gender: 1,
+          email: "",
+          qq: "",
+          henau_number: "",
+          details: "",
+        };
+      },
+      methods: {
+        getAllProfessionals() {
+          // var axios = require('axios');
+
+          var config = {
+            method: "get",
+            url: "http://ai.tordor.top:58354/professional/all",
+            headers: {
+              // "User-Agent": "Apifox/1.0.0 (https://apifox.com)",
+            },
+          };
+
+          let that = this;
+
+          axios(config)
+            .then(function (response) {
+              // console.log(JSON.stringify(response.data));
+              that.professionals = response.data.data;
+            })
+            .catch(function (error) {
+              console.log(error);
+            });
+        },
+
+        getAllClasses() {
+          // var axios = require('axios');
+
+          var config = {
+            method: "get",
+            url:
+              "http://ai.tordor.top:58354/class/professional/query?professional_id=" +
+              this.professional_id,
+            headers: {
+              // "User-Agent": "Apifox/1.0.0 (https://apifox.com)",
+            },
+          };
+
+          let that = this;
+
+          axios(config)
+            .then(function (response) {
+              // console.log(JSON.stringify(response.data));
+              that.classes = response.data.data;
+            })
+            .catch(function (error) {
+              console.log(error);
+            });
+        },
+
+        getAllDepartments() {
+          // var axios = require("axios");
+
+          var config = {
+            method: "get",
+            url: "http://ai.tordor.top:58354/department/all",
+            headers: {
+              // "User-Agent": "Apifox/1.0.0 (https://apifox.com)",
+            },
+          };
+
+          let that = this;
+
+          axios(config)
+            .then(function (response) {
+              // console.log(JSON.stringify(response.data));
+              that.departments = response.data.data;
+            })
+            .catch(function (error) {
+              console.log(error);
+            });
+        },
+
+        submitSignForm() {
+          // var axios = require("axios");
+
+          if (
+            this.name != "" &&
+            this.email != "" &&
+            this.henau_number != "" &&
+            this.class_id != 0 &&
+            this.department_id != 0 &&
+            this.qq != ""
+          ) {
+            // console.log("allow submit");
+          } else {
+            // if (this.name == "") {
+            //   alert("姓名不能为空");
+            // }
+            // if (this.email == "") {
+            //   alert("邮箱不能为空");
+            // }
+            // if (this.henau_number == "") {
+            //   alert("学号不能为空");
+            // }
+            // if (this.class_id == "") {
+            //   alert("班级不能为空");
+            // }
+            // if (this.department_id == "") {
+            //   alert("专业不能为空");
+            // }
+            alert(
+              (this.name == "" ? "姓名不能为空\n" : "") +
+                (this.email == "" ? "邮箱不能为空\n" : "") +
+                (this.qq == "" ? "QQ不能为空\n" : "") +
+                (this.henau_number == "" ? "学号不能为空\n" : "") +
+                (this.class_id == 0 ? "班级不能为空\n" : "")
+              // (this.department_id == 0 ? "专业不能为空\n" : "")
+            );
+            return;
+          }
+
+          var data = JSON.stringify({
+            name: this.name,
+            henau_number: this.henau_number,
+            class_id: this.class_id,
+            department_id: this.department_id,
+            email: this.email,
+            qq: this.qq,
+            details: this.details,
+            gender: this.gender,
+            professional_id: this.professional_id,
+            birthday: this.birthday,
+            obey_adjustment: this.obey_adjustment ? 1 : 0,
+            native_place: this.native_place,
+          });
+          // console.log(data);
+          // alert(data);
+          var config = {
+            method: "post",
+            url: "http://ai.tordor.top:58354/sanding/sign/add",
+            // url: "http://127.0.0.1:5500/sanding/sign/add",
+            headers: {
+              // "User-Agent": "Apifox/1.0.0 (https://apifox.com)",
+              "Content-Type": "application/json",
+            },
+            data: data,
+          };
+
+          let that = this;
+
+          axios(config)
+            .then(function (response) {
+              // console.log(JSON.stringify(response.data));
+              window.location.href =
+                "/success.html?henau_number=" + that.henau_number;
+            })
+            .catch(function (error) {
+              console.log(error);
+            });
+        },
+
+        reload() {
+          window.location.reload();
+        },
+      },
+
+      watch: {
+        professional_id(new_value, old_value) {
+          this.getAllClasses();
+        },
+      },
+      created() {
+        this.getAllProfessionals();
+
+        this.getAllDepartments();
+      },
+    }).mount("#app");
+  </script>
+</html>

@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <style>
+    .main {
+      width: 600px;
+      height: 80vh;
+      margin: 0 auto;
+      padding: 10px;
+      border: 2px solid #000;
+      position: relative;
+    }
+    .goodcard {
+      width: 400px;
+      height: auto;
+      position: absolute;
+      /* border: 1px solid #000; */
+    }
+    .tab {
+      display: flex;
+      justify-content: end;
+    }
+    .tabcard {
+      width: 200px;
+      position: relative;
+      border: 1px solid gray;
+      border-bottom: none;
+      display: flex;
+      z-index: 100;
+      background-color: white;
+      top: 1px;
+      justify-content: center;
+      align-items: center;
+      padding-top: 5px;
+      padding-bottom: 5px;
+    }
+    .tabcard img {
+      width: 30px;
+      height: 30px;
+    }
+    .info > .title {
+      font-size: 20px;
+      font-weight: bold;
+      padding-left: 10px;
+      line-height: 40px;
+      border-bottom: 1px dashed gray;
+    }
+    .info {
+      border: 1px solid gray;
+      padding-top: 10px;
+      /* display: block; */
+    }
+    .info > .about {
+      padding-left: 10px;
+      height: 150px;
+    }
+    .info > .action {
+      padding-left: 10px;
+      background-color: lightgray;
+      height: 50px;
+    }
+  </style>
+  <body>
+    <div class="main">
+      <div class="goodcard">
+        <div class="tab">
+          <div class="tabcard">
+            <img src="" alt="" />
+            <div class="cart">我的购物车</div>
+          </div>
+        </div>
+        <div class="info">
+          <div class="title">最新加入的商品</div>
+          <div class="about"></div>
+          <div class="action"></div>
+        </div>
+      </div>
+      
+    </div>
+  </body>
+  <script>
+    // 获取dom并且添加事件
+    let tabcard = document.body.getElementsByClassName("tabcard")[0];  
+    let info  = document.body.getElementsByClassName("info")[0];
+    console.log(tabcard)
+    tabcard.addEventListener("mouseover", ()=>{
+        info.style.display = "block";
+        tabcard.style.border = "1px solid gray";
+    })
+    tabcard.addEventListener("mouseout", ()=>{
+        info.style.display = "none";
+    })
+    
+  </script>
+</html>

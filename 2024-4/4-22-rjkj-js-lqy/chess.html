@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<style>
+    .chessboard {
+        width: 600px;
+        height: 600px;
+        background-color: beige;
+        margin: 0 auto;
+        padding: 0 0;
+        font-size: 0px;
+    }
+    .chessitem {
+        width: 30px;
+        height: 30px;
+        display: inline-block;
+        /* background-color: black; */
+        border: 1px solid black;
+        box-sizing: border-box;
+        transition: all 0.5s;
+    }
+    .colorDisc{
+        width: 500px;
+        height: 80px;
+        /* background-color: beige; */
+        margin: 40px auto;
+        padding-top: 10px;
+        text-align: center;
+    }
+    .colorDisc .item{
+        width: 30px;
+        height: 30px;
+        /* background-color: black; */
+        border: 1px solid black;
+        box-sizing: border-box;
+        display: inline-block;
+        margin: 0 10px;
+    }
+</style>
+<script>
+
+function draw(e){
+    var tar = e.target;
+    if(tar.style.backgroundColor == "black"){
+        tar.style.backgroundColor = null;
+        return;
+    }
+    tar.style.backgroundColor = "black";
+}
+ 
+</script>
+
+<body>
+
+    <div class="chessboard">
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+        <div class="chessitem" onclick="draw(event)"></div>
+    </div>
+
+</body>
+
+
+
+</html>

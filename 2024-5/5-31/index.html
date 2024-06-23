@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>备忘录</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <style>
+    body {
+    font-family: Arial, sans-serif;
+    background-color: #f0f0f0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+}
+
+#memo-app {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    width: 300px;
+}
+
+#add-memo {
+    display: flex;
+    margin-bottom: 20px;
+}
+
+#memo-input {
+    flex-grow: 1;
+    padding: 5px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+#add-button {
+    margin-left: 10px;
+    padding: 5px 10px;
+    border: none;
+    background-color: #28a745;
+    color: #fff;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+#add-button:hover {
+    background-color: #218838;
+}
+
+#memo-list {
+    list-style: none;
+    padding: 0;
+}
+
+.memo-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 5px;
+    border-bottom: 1px solid #ccc;
+}
+
+.memo-item:last-child {
+    border-bottom: none;
+}
+
+.edit-button, .delete-button {
+    margin-left: 10px;
+    padding: 2px 5px;
+    border: none;
+    cursor: pointer;
+}
+
+.edit-button {
+    background-color: #007bff;
+    color: #fff;
+    border-radius: 3px;
+}
+
+.edit-button:hover {
+    background-color: #0056b3;
+}
+
+.delete-button {
+    background-color: #dc3545;
+    color: #fff;
+    border-radius: 3px;
+}
+
+.delete-button:hover {
+    background-color: #c82333;
+}
+
+  </style>
+  <body>
+    <div id="memo-app">
+      <h1>备忘录</h1>
+      <div id="add-memo">
+        <input type="text" id="memo-input" placeholder="输入备忘录" />
+        <button id="add-button">添加</button>
+      </div>
+      <ul id="memo-list"></ul>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+      $(document).ready(function () {
+        // 添加备忘录
+        $("#add-button").click(function () {
+          const memoText = $("#memo-input").val();
+          if (memoText !== "") {
+            const memoItem = `<li class="memo-item">
+                                    <span class="memo-text">${memoText}</span>
+                                    <button class="edit-button">编辑</button>
+                                    <button class="delete-button">删除</button>
+                                  </li>`;
+            $("#memo-list").append(memoItem);
+            $("#memo-input").val("");
+          }
+        });
+
+        // 编辑备忘录
+        $("#memo-list").on("click", ".edit-button", function () {
+          const memoText = $(this).siblings(".memo-text").text();
+          const newMemoText = prompt("编辑备忘录", memoText);
+          if (newMemoText !== null) {
+            $(this).siblings(".memo-text").text(newMemoText);
+          }
+        });
+
+        // 删除备忘录
+        $("#memo-list").on("click", ".delete-button", function () {
+          $(this).parent().remove();
+        });
+      });
+    </script>
+  </body>
+</html>
