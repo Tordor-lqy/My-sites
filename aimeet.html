@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AiThinkTank</title>
+    <script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <style>
+        * {
+            margin: 0px;
+            padding: 0px;
+        }
+        body {
+            background-color: black;
+            font-family: Arial, sans-serif;
+        }
+        #app {
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .con {
+            max-height: 80vh;
+            border-radius: 10px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+        }
+        .meet {
+            width: 100%;
+            background-color: #2c2c2c;
+            padding: 10px;
+        }
+        #chat {
+            width: 100%;
+            height: 60vh;
+            background-color: #272727;
+            overflow-y: scroll;
+            padding: 10px;
+        }
+        .btn {
+            color: white;
+            width: 100%;
+            background-color: #616060;
+            line-height: 30px;
+            text-align: center;
+            border-radius: 10px;
+            margin: 10px 0;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        .meet-item {
+            width: 100%;
+            height: 32px;
+            background-color: #3b3b3b;
+            color: white;
+            font-size: 14px;
+            margin: 5px 0;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .meet-item:hover {
+            background-color: #616060;
+        }
+        .chat-item {
+            width: 100%;
+            color: white;
+            font-size: 14px;
+            display: flex;
+            justify-content: start;
+            margin: 10px 0;
+        }
+        .ava {
+            width: 40px;
+            height: 40px;
+            background-color: #616060;
+            border-radius: 50%;
+            margin-right: 10px;
+            text-align: center;
+            line-height: 40px;
+        }
+        .info {
+            width: calc(100% - 50px);
+        }
+        .message {
+            max-width: 100%;
+            padding: 10px;
+            border-radius: 10px;
+            background-color: #3b3b3b;
+            word-wrap: break-word;
+        }
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background: #1f1f1f;
+            padding: 20px;
+            color: white;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 500px;
+        }
+        .modal-content h2 {
+            margin-bottom: 20px;
+        }
+        .modal-content label {
+            display: block;
+            margin-top: 10px;
+        }
+        .modal-content input {
+            width: calc(100% - 10px);
+            padding: 8px;
+            margin-top: 5px;
+            border-radius: 5px;
+            border: 1px solid #272727;
+            background-color: #272727;
+            color: white;
+        }
+        .modal-content button {
+            margin-top: 10px;
+            padding: 10px 20px;
+            background: #616060;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .title {
+            color: white;
+            font-size: 18px;
+            font-weight: bold;
+            text-align: center;
+            margin: 20px 0;
+        }
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(100%);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        @keyframes fadeLeft {
+            from {
+                opacity: 0;
+                transform: translateX(-100%);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+        /* Responsive Styles */
+        @media (min-width: 600px) {
+            .con {
+                flex-direction: row;
+            }
+            .meet {
+                width: 20%;
+                min-width: 150px;
+                height: auto;
+            }
+            #chat {
+                width: 80vw;
+                max-width: 800px;
+                height: 700px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <div class="con" style="animation: fadeIn 1s ease;">
+            <div class="meet">
+                <div class="btn" @click="showModal = true">添加会议</div>
+                <hr style="margin-top: 10px; border-color: black" />
+                <div v-for="(meet, index) in meetList" class="meet-item"
+                     :style="{ animation: `fadeLeft ${0.6+0.3*index}s ease`, border: meet_id == meet.ai_meet_id ? '1px solid white' : '1px solid #3b3b3b' }"
+                     @click="meet_id = meet.ai_meet_id">
+                    <div class="meet-item-title">{{meet.ai_meet_theme.substring(0, 5)}}...</div>
+                </div>
+            </div>
+            <div style="overflow: hidden">
+                <div id="chat">
+                    <div class="title">会议主题：{{ meet_id == -1 ? "" : meetList.filter((meet) => meet.ai_meet_id == meet_id)[0].ai_meet_theme }}</div>
+                    <div v-for="chat in chatList" class="chat-item">
+                        <div class="ava">{{chat.ai_name[0]}}</div>
+                        <div class="info">
+                            <div class="name" style="margin-bottom: 4px">{{chat.ai_name}}</div>
+                            <div class="message">{{chat.ai_message}}</div>
+                        </div>
+                    </div>
+                    <div class="h" style="height: 300px"></div>
+                </div>
+            </div>
+        </div>
+        <!-- Modal -->
+        <div class="modal" v-if="showModal">
+            <div class="modal-content" style="animation: fadeIn 1s ease;">
+                <h2>添加会议</h2>
+                <label for="theme">会议主题以及讨论轮次:</label>
+                <div style="display: flex; justify-content: space-between">
+                    <input type="text" id="theme" v-model="newMeeting.theme" style="width: 40%" />
+                    <input type="text" id="theme" v-model="newMeeting.round" style="width: 40%" />
+                </div>
+                <label for="roles">会议角色:</label>
+                <div class="card">
+                    <div class="role-item" v-for="(role, index) in newMeeting.roles" style="display: flex; align-items: center; justify-content: space-between">
+                        <input type="text" v-model="newMeeting.roles[index].name" style="width: 25%" />
+                        <input type="text" v-model="newMeeting.roles[index].prompt" style="width: 50%" />
+                        <button @click="newMeeting.roles.splice(index, 1)" style="height: min-content; background-color: #131313">删除</button>
+                    </div>
+                </div>
+                <button @click="newMeeting.roles.push({ name: '', prompt: '' })">添加角色</button>
+                <button @click="usePresetRoles">使用预设角色</button>
+                <button @click="addMeeting">添加</button>
+                <button @click="showModal = false">取消</button>
+            </div>
+        </div>
+    </div>
+    <script>
+        new Vue({
+            el: "#app",
+            data: {
+                baseURL: "http://localhost:5000/api",
+                meetList: [],
+                meet_id: -1,
+                chatList: [],
+                showModal: false,
+                newMeeting: {
+                    meet_id: -1,
+                    theme: "",
+                    round: 3,
+                    roles: [],
+                },
+                IntervalId: null,
+            },
+            created() {
+                this.fetchMeetList();
+            },
+            methods: {
+                usePresetRoles() {
+                    this.newMeeting.roles = [
+                        {
+                            name: "主持人",
+                            prompt: "你是主持人，也是核心人物请站在大局思考问题,并且要提出疑问，抛出问题",
+                        },
+                        {
+                            name: "技术专家",
+                            prompt: "你是一个技术专家，从技术角度思考可行性，并且提出合理的建议",
+                        },
+                        {
+                            name: "质疑者",
+                            prompt: "你是一个批判者，善于在讨论中，找出关键点并且提出质疑",
+                        },
+                    ];
+                },
+                fetchMeetList() {
+                    axios.get(`${this.baseURL}/get/meet/list`).then((res) => {
+                        this.meetList = res.data;
+                    }).catch((err) => {
+                        console.log(err);
+                    });
+                },
+                fetchChatList() {
+                    axios.get(`${this.baseURL}/ai/get/content?meet_id=${this.meet_id}`).then((res) => {
+                        this.chatList = res.data;
+                    }).catch((err) => {
+                        console.log(err);
+                    });
+                },
+                addMeeting() {
+                    axios.put(`${this.baseURL}/ai/insert/meet?ai_meet_theme=${this.newMeeting.theme}&ai_meet_round=${this.newMeeting.round}`).then((res) => {
+                        axios.get(`${this.baseURL}/ai/get/new/meet/id`).then((res) => {
+                            this.newMeeting.meet_id = res.data.meet_id;
+                            this.fetchMeetList();
+                            this.meet_id = this.newMeeting.meet_id;
+                            this.showModal = false;
+                            axios.put(`${this.baseURL}/ai/start/meet`, this.newMeeting).then((res) => {
+                                console.log(res);
+                            }).catch((err) => {
+                                console.log(err);
+                            });
+                        });
+                    });
+                },
+            },
+            watch: {
+                meet_id(newVal) {
+                    this.chatList = [];
+                    this.fetchChatList();
+                    clearInterval(this.IntervalId);
+                    this.IntervalId = setInterval(() => {
+                        this.fetchChatList();
+                    }, 1000);
+                },
+            },
+        });
+    </script>
+</body>
+</html>
