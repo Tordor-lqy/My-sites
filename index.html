@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CPU, Disk, Memory, and Network Usage Line Chart</title>
+    <!-- 引入 ECharts.js -->
+    <script src="https://cdn.jsdelivr.net/npm/echarts/dist/echarts.min.js"></script>
+    <!-- 引入 Axios.js -->
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+  </head>
+  <body>
+    <div style="display: flex; margin: 0 auto; width: 1200px">
+      <div>
+        <p>CPU Usage Over Time</p>
+        <div id="cpu-chart" style="width: 600px; height: 400px"></div>
+      </div>
+      <div>
+        <p>Disk Usage Over Time</p>
+        <div id="memory-chart" style="width: 600px; height: 400px"></div>
+      </div>
+    </div>
+
+    <div style="margin: 0 auto; width: 600px">
+      <p>Memory Usage Over Time</p>
+      <div id="disk-chart" style="width: 600px; height: 400px"></div>
+    </div>
+    <div style="display: flex; margin: 0 auto; width: 1200px">
+      <div>
+        <p>network-receive-chart</p>
+        <div
+          id="network-receive-chart"
+          style="width: 600px; height: 400px"
+        ></div>
+      </div>
+      <div>
+        <p>network-transmit-chart</p>
+        <div
+          id="network-transmit-chart"
+          style="width: 600px; height: 400px"
+        ></div>
+      </div>
+    </div>
+
+    <script>
+      // 获取 CPU 使用数据并绘制折线图
+      axios
+        .get("http://ai.tordor.top:32327/api/linux/cpu")
+        .then((response) => {
+          const data = response.data;
+          const timestamps = data.map((entry) => entry.timestamp);
+          const cpuUsages = data.map((entry) => entry.cpu_usage);
+
+          // 初始化 ECharts 实例
+          var cpuChartDom = document.getElementById("cpu-chart");
+          var cpuChart = echarts.init(cpuChartDom);
+          var cpuOption;
+
+          cpuOption = {
+            tooltip: {
+              trigger: "axis",
+            },
+            xAxis: {
+              type: "category",
+              data: timestamps,
+              axisLabel: {
+                formatter: function (value) {
+                  return new Date(value).toLocaleString();
+                },
+              },
+            },
+            yAxis: {
+              type: "value",
+            },
+            series: [
+              {
+                data: cpuUsages,
+                type: "line",
+              },
+            ],
+          };
+
+          // 使用刚指定的配置项和数据显示图表
+          cpuOption && cpuChart.setOption(cpuOption);
+        })
+        .catch((error) => {
+          console.error("Error fetching CPU data:", error);
+        });
+
+      // 获取磁盘使用数据并绘制折线图
+      axios
+        .get("http://ai.tordor.top:32327/api/linux/disk")
+        .then((response) => {
+          const data = response.data;
+          const timestamps = Array.from(
+            new Set(data.map((entry) => entry.timestamp))
+          ).sort();
+
+          const fileSystems = Array.from(
+            new Set(data.map((entry) => entry.file_system))
+          );
+
+          const series = fileSystems.map((fs) => {
+            return {
+              name: fs,
+              type: "line",
+              data: timestamps.map((ts) => {
+                const entry = data.find(
+                  (d) => d.timestamp === ts && d.file_system === fs
+                );
+                return entry ? entry.disk_used_mb : null;
+              }),
+            };
+          });
+
+          // 初始化 ECharts 实例
+          var diskChartDom = document.getElementById("disk-chart");
+          var diskChart = echarts.init(diskChartDom);
+          var diskOption;
+
+          diskOption = {
+            tooltip: {
+              trigger: "axis",
+            },
+            legend: {
+              data: fileSystems,
+            },
+            xAxis: {
+              type: "category",
+              data: timestamps,
+              axisLabel: {
+                formatter: function (value) {
+                  return new Date(value).toLocaleString();
+                },
+              },
+            },
+            yAxis: {
+              type: "value",
+            },
+            series: series,
+          };
+
+          // 使用刚指定的配置项和数据显示图表
+          diskOption && diskChart.setOption(diskOption);
+        })
+        .catch((error) => {
+          console.error("Error fetching disk data:", error);
+        });
+
+      // 获取内存使用数据并绘制折线图
+      axios
+        .get("http://ai.tordor.top:32327/api/linux/memory")
+        .then((response) => {
+          const data = response.data;
+          const timestamps = data.map((entry) => entry.timestamp);
+          const memoryUsed = data.map((entry) => entry.mem_used);
+          const memoryFree = data.map((entry) => entry.mem_free);
+
+          // 初始化 ECharts 实例
+          var memoryChartDom = document.getElementById("memory-chart");
+          var memoryChart = echarts.init(memoryChartDom);
+          var memoryOption;
+
+          memoryOption = {
+            tooltip: {
+              trigger: "axis",
+            },
+            legend: {
+              data: ["Memory Used", "Memory Free"],
+            },
+            xAxis: {
+              type: "category",
+              data: timestamps,
+              axisLabel: {
+                formatter: function (value) {
+                  return new Date(value).toLocaleString();
+                },
+              },
+            },
+            yAxis: {
+              type: "value",
+            },
+            series: [
+              {
+                name: "Memory Used",
+                type: "line",
+                data: memoryUsed,
+              },
+              {
+                name: "Memory Free",
+                type: "line",
+                data: memoryFree,
+              },
+            ],
+          };
+
+          // 使用刚指定的配置项和数据显示图表
+          memoryOption && memoryChart.setOption(memoryOption);
+        })
+        .catch((error) => {
+          console.error("Error fetching memory data:", error);
+        });
+
+      // 获取网络使用数据并绘制接收数据折线图
+      axios
+        .get("http://ai.tordor.top:32327/api/linux/network")
+        .then((response) => {
+          const data = response.data;
+          const timestamps = Array.from(
+            new Set(data.map((entry) => entry.timestamp))
+          ).sort();
+
+          const netInterfaces = Array.from(
+            new Set(data.map((entry) => entry.net_interface))
+          );
+
+          const receiveSeries = netInterfaces.map((ni) => {
+            return {
+              name: ni + " Receive",
+              type: "line",
+              data: timestamps.map((ts) => {
+                const entry = data.find(
+                  (d) => d.timestamp === ts && d.net_interface === ni
+                );
+                return entry ? entry.net_receive_mb : null;
+              }),
+            };
+          });
+
+          const transmitSeries = netInterfaces.map((ni) => {
+            return {
+              name: ni + " Transmit",
+              type: "line",
+              data: timestamps.map((ts) => {
+                const entry = data.find(
+                  (d) => d.timestamp === ts && d.net_interface === ni
+                );
+                return entry ? entry.net_transmit_mb : null;
+              }),
+            };
+          });
+
+          // 初始化 ECharts 实例 - 网络接收数据图表
+          var networkReceiveChartDom = document.getElementById(
+            "network-receive-chart"
+          );
+          var networkReceiveChart = echarts.init(networkReceiveChartDom);
+          var networkReceiveOption;
+
+          networkReceiveOption = {
+            tooltip: {
+              trigger: "axis",
+            },
+            legend: {
+              data: receiveSeries.map((s) => s.name),
+            },
+            xAxis: {
+              type: "category",
+              data: timestamps,
+              axisLabel: {
+                formatter: function (value) {
+                  return new Date(value).toLocaleString();
+                },
+              },
+            },
+            yAxis: {
+              type: "value",
+            },
+            series: receiveSeries,
+          };
+
+          // 使用刚指定的配置项和数据显示图表
+          networkReceiveOption &&
+            networkReceiveChart.setOption(networkReceiveOption);
+
+          // 初始化 ECharts 实例 - 网络发送数据图表
+          var networkTransmitChartDom = document.getElementById(
+            "network-transmit-chart"
+          );
+          var networkTransmitChart = echarts.init(networkTransmitChartDom);
+          var networkTransmitOption;
+
+          networkTransmitOption = {
+            tooltip: {
+              trigger: "axis",
+            },
+            legend: {
+              data: transmitSeries.map((s) => s.name),
+            },
+            xAxis: {
+              type: "category",
+              data: timestamps,
+              axisLabel: {
+                formatter: function (value) {
+                  return new Date(value).toLocaleString();
+                },
+              },
+            },
+            yAxis: {
+              type: "value",
+            },
+            series: transmitSeries,
+          };
+
+          // 使用刚指定的配置项和数据显示图表
+          networkTransmitOption &&
+            networkTransmitChart.setOption(networkTransmitOption);
+        })
+        .catch((error) => {
+          console.error("Error fetching network data:", error);
+        });
+    </script>
+  </body>
+</html>
