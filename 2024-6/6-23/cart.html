@@ -163,6 +163,8 @@
     </div>
 
     <script>
+
+      // 图片数组
       const imgs = [
         "https://img.alicdn.com/imgextra/i4/47183149/O1CN01WqBrTd1Z8HxODMBZp_!!0-saturn_solar.jpg_.webp",
         "https://g-search3.alicdn.com/img/bao/uploaded/i4/i3/3501738662/O1CN01wTMD072DrFXagDXWt_!!0-item_pic.jpg_.webp",
@@ -177,8 +179,9 @@
       ];
 
       const goodsContainer = document.querySelector(".goods");
-      const itemCount = Math.floor(Math.random() * 5) + 6; // Random number between 6 and 10
+      const itemCount = Math.floor(Math.random() * 5) + 6; // 随机商品数量
 
+      // 生成商品
       for (let i = 0; i < itemCount; i++) {
         const item = document.createElement("div");
         item.classList.add("item");
@@ -202,7 +205,7 @@
 
         const priceDiv = document.createElement("div");
         priceDiv.classList.add("price");
-        priceDiv.innerText = (Math.random() * 100 + 1).toFixed(2);
+        priceDiv.innerText = (Math.random() * 100 + 1).toFixed(2); // 随机价格保留两位小数
 
         const quantityDiv = document.createElement("div");
         quantityDiv.classList.add("inp");

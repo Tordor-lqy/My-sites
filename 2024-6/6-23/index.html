@@ -256,16 +256,19 @@
         card.appendChild(imgElement);
         card.appendChild(info);
 
+        // 鼠标进入是显示商品详情
         card.addEventListener("mouseenter", (e) => {
           details.style.display = "block";
           details.innerHTML = `<div><strong>${name.textContent}</strong></div><div>${price.textContent}￥</div>`;
         });
 
+        // 鼠标移动时信息跟随移动
         card.addEventListener("mousemove", (e) => {
           details.style.left = e.pageX + 10 + "px";
           details.style.top = e.pageY + 10 + "px";
         });
 
+        // 鼠标离开时隐藏商品详情
         card.addEventListener("mouseleave", () => {
           details.style.display = "none";
         });
@@ -286,7 +289,7 @@
         for (let i = 0; i < numProducts; i++) {
           const productName = "商品" + (i + 1);
           const productPrice = Math.floor(Math.random() * 101) + 100;
-          const productImage = imgs[Math.floor(Math.random() * imgs.length)]; // Random product image URL
+          const productImage = imgs[Math.floor(Math.random() * imgs.length)];
           products.push(`
             <div class="product-item">
                 <img src="${productImage}" alt="${productName}" />
@@ -301,15 +304,18 @@
         return products.join("");
       }
 
+      // 鼠标进入时显示商品列表
       recentlyViewed.addEventListener("mouseenter", (e) => {
         const productInfo = generateRandomProductInfo();
         document.getElementById("product-info").innerHTML = productInfo;
         document.getElementById("product-info").style.display = "block";
+        // 添加鼠标跟随移动
         document.addEventListener("mousemove", followMouse);
       });
-
+      // 鼠标离开时隐藏商品列表
       recentlyViewed.addEventListener("mouseleave", () => {
         document.getElementById("product-info").style.display = "none";
+        // 移除鼠标移动事件
         document.removeEventListener("mousemove", followMouse);
       });
 
@@ -317,11 +323,13 @@
         const productInfo = generateRandomProductInfo();
         document.getElementById("product-info").innerHTML = productInfo;
         document.getElementById("product-info").style.display = "block";
+        // 添加鼠标跟随移动
         document.addEventListener("mousemove", followMouse);
       });
 
       recentlyFavorited.addEventListener("mouseleave", () => {
         document.getElementById("product-info").style.display = "none";
+        // 移除鼠标移动事件
         document.removeEventListener("mousemove", followMouse);
       });
 
