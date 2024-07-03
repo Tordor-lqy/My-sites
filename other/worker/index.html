@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Table Example</title>
+  <!-- 引入Vuetify的CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/vuetify@2.6.0/dist/vuetify.min.css" rel="stylesheet">
+  <!-- 引入Vue.js -->
+  <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.min.js"></script>
+  <!-- 引入Vuetify的JS -->
+  <script src="https://cdn.jsdelivr.net/npm/vuetify@2.6.0/dist/vuetify.min.js"></script>
+</head>
+<body>
+  <div id="app">
+    <v-app>
+      <v-container>
+        <!-- 登录提示框 -->
+        <!-- <v-dialog v-model="loginDialog" persistent max-width="300">
+          <v-card>
+            <v-card-title class="headline">登录</v-card-title>
+            <v-card-text>
+              <v-form>
+                <v-text-field v-model="username" label="用户名" required></v-text-field>
+                <v-text-field v-model="password" label="密码" type="password" required></v-text-field>
+              </v-form>
+            </v-card-text>
+            <v-card-actions>
+              <v-spacer></v-spacer>
+              <v-btn color="primary" @click="login">登录</v-btn>
+            </v-card-actions>
+          </v-card>
+        </v-dialog> -->
+
+        <div class="me_order">
+          <div class="text-h6 pl-6 pt-4">我提交的</div>
+
+          <v-row v-for="order in paginatedOrders" :key="order.id" class="card" @click="selectOrder(order)">
+            <v-col cols="12">
+              <div class="text">
+                <div>
+                  <h3 class="name">{{ order.damage_type_name }}</h3>
+                  <p class="pt-2" style="font-size: 12px">
+                    故障详情 :
+                    {{
+                      order.damage_details.length > 10
+                        ? order.damage_details.slice(0, 10) + "..."
+                        : order.damage_details
+                    }}
+                  </p>
+                  <h6 class="pt-2">
+                    {{
+                      order.one_location_name +
+                      "-" +
+                      order.two_location_name +
+                      "-" +
+                      order.final_location_name
+                    }}
+                  </h6>
+                  <h6 class="pt-2">{{ order.order_update_time }}</h6>
+                </div>
+
+                <div class="status">
+                  <v-chip
+                    class="my-2"
+                    :color="order.order_is_repaired == 1 ? 'success' : 'error'"
+                  >
+                    {{ order.order_is_repaired == 0 ? "未修复" : "已修复" }}
+                  </v-chip>
+                  <v-chip
+                    class="my-2"
+                    :color="order.order_is_public == 1 ? 'warning' : 'blue'"
+                  >
+                    {{ order.order_is_public == 0 ? "未公开" : "已公开" }}
+                  </v-chip>
+                </div>
+              </div>
+            </v-col>
+          </v-row>
+        </div>
+
+        <!-- Order Dialog -->
+        <v-dialog v-model="show_order_dialog" max-width="500">
+          <v-card>
+            <v-card-title class="headline">订单详情</v-card-title>
+            <v-card-text>
+              <div v-if="order_info">
+                <p><strong>故障类型:</strong> {{ order_info.damage_type_name }}</p>
+                <p><strong>故障详情:</strong> {{ order_info.damage_details }}</p>
+                <p><strong>位置:</strong> {{ order_info.one_location_name + "-" + order_info.two_location_name + "-" + order_info.final_location_name }}</p>
+                <p><strong>更新时间:</strong> {{ order_info.order_update_time }}</p>
+                <p><strong>修复状态:</strong> {{ order_info.order_is_repaired == 1 ? "已修复" : "未修复" }}</p>
+                <p><strong>公开状态:</strong> {{ order_info.order_is_public == 1 ? "已公开" : "未公开" }}</p>
+              </div>
+            </v-card-text>
+            <v-card-actions>
+              <v-spacer></v-spacer>
+              <v-btn color="primary" @click="show_order_dialog = false">关闭</v-btn>
+            </v-card-actions>
+          </v-card>
+        </v-dialog>
+
+        <!-- 分页按钮 -->
+        <div class="btns">
+          <v-btn icon @click="prevPage" :disabled="currentPage === 1">
+            <!-- <v-icon>mdi-chevron-left</v-icon> -->
+            上一页
+          </v-btn>
+          <v-btn icon @click="nextPage" :disabled="currentPage === totalPages">
+            <!-- <v-icon>mdi-chevron-right</v-icon> -->
+            下一页
+          </v-btn>
+        </div>
+      </v-container>
+    </v-app>
+  </div>
+
+  <style scoped>
+    .status {
+      display: flex;
+      flex-direction: column;
+    }
+    .card {
+      background-color: white;
+      width: 80vw;
+      max-width: 800px;
+      margin: 10px auto auto auto;
+      padding: 15px;
+      border-radius: 2px;
+      box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+    }
+    .text {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .action {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .action * {
+      width: 45%;
+      margin: 5px 5px auto 5px;
+    }
+    .name {
+      color: black;
+      font-weight: 600;
+    }
+    .info {
+      /* background-color: black; */
+      width: 80vw;
+      height: 40vh;
+      margin: 20px auto auto auto;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+    }
+    .avater {
+      background-color: white;
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+    }
+    .avater > img {
+      margin: 10px;
+    }
+    .me_order {
+      background-color: white;
+      width: 85vw;
+      max-width: 850px;
+      min-height: 80vh;
+      margin: 10px auto auto auto;
+      border-radius: 4px;
+      padding-bottom: 60px;
+    }
+    .btns {
+      position: fixed;
+      top: 20vh;
+      right: 0;
+      left: 80vw;
+      font-size: 25px;
+      width: 70px;
+      /* height: 90px; */
+      z-index: 50;
+    }
+    .btns > * {
+      width: 60px;
+      height: 60px;
+      margin-top: 20px;
+    }
+  </style>
+
+  <script>
+    new Vue({
+      el: '#app',
+      vuetify: new Vuetify(),
+      data: () => ({
+        loginDialog: true,
+        username: '',
+        password: '',
+        meorder: [
+          {
+            id: 1,
+            damage_type_name: '电力故障',
+            damage_details: '电力故障详细描述',
+            one_location_name: 'A区',
+            two_location_name: 'B街',
+            final_location_name: 'C号楼',
+            order_update_time: '2023-01-01 12:00:00',
+            order_is_repaired: 1,
+            order_is_public: 1,
+          },
+          {
+            id: 2,
+            damage_type_name: '水管破裂',
+            damage_details: '水管破裂详细描述',
+            one_location_name: 'X区',
+            two_location_name: 'Y街',
+            final_location_name: 'Z号楼',
+            order_update_time: '2023-01-02 15:00:00',
+            order_is_repaired: 0,
+            order_is_public: 0,
+          },
+          // 添加更多订单以测试分页
+          {
+            id: 3,
+            damage_type_name: '网络故障',
+            damage_details: '网络故障详细描述',
+            one_location_name: 'C区',
+            two_location_name: 'D街',
+            final_location_name: 'E号楼',
+            order_update_time: '2023-01-03 18:00:00',
+            order_is_repaired: 1,
+            order_is_public: 1,
+          },
+          {
+            id: 4,
+            damage_type_name: '设备故障',
+            damage_details: '设备故障详细描述',
+            one_location_name: 'F区',
+            two_location_name: 'G街',
+            final_location_name: 'H号楼',
+            order_update_time: '2023-01-04 09:00:00',
+            order_is_repaired: 0,
+            order_is_public: 0,
+          },
+          {
+            id: 5,
+            damage_type_name: '电力故障',
+            damage_details: '电力故障详细描述',
+            one_location_name: 'I区',
+            two_location_name: 'J街',
+            final_location_name: 'K号楼',
+            order_update_time: '2023-01-05 12:00:00',
+            order_is_repaired: 1,
+            order_is_public: 1,
+          },
+          {
+            id: 6,
+            damage_type_name: '水管破裂',
+            damage_details: '水管破裂详细描述',
+            one_location_name: 'L区',
+            two_location_name: 'M街',
+            final_location_name: 'N号楼',
+            order_update_time: '2023-01-06 15:00:00',
+            order_is_repaired: 0,
+            order_is_public: 0,
+          }
+        ],
+        show_order_dialog: false,
+        order_info: null,
+        currentPage: 1,
+        itemsPerPage: 2,
+      }),
+      computed: {
+        totalPages() {
+          return Math.ceil(this.meorder.length / this.itemsPerPage);
+        },
+        paginatedOrders() {
+          const start = (this.currentPage - 1) * this.itemsPerPage;
+          const end = this.currentPage * this.itemsPerPage;
+          return this.meorder.slice(start, end);
+        }
+      },
+      methods: {
+        login() {
+          if (this.username && this.password) {
+            this.loginDialog = false;
+          }
+        },
+        selectOrder(order) {
+          this.order_info = order;
+          this.show_order_dialog = true;
+        },
+        prevPage() {
+          if (this.currentPage > 1) {
+            this.currentPage--;
+          }
+        },
+        nextPage() {
+          if (this.currentPage < this.totalPages) {
+            this.currentPage++;
+          }
+        }
+      }
+    });
+  </script>
+</body>
+</html>
