@@ -97,7 +97,7 @@
             // 游戏循环
             React.useEffect(() => {
                 if (isPlaying && !gameOver) {
-                    gameLoopRef.current = setInterval(moveSnake, 150);
+                    gameLoopRef.current = setInterval(moveSnake, 200);
                     return () => clearInterval(gameLoopRef.current);
                 }
             }, [isPlaying, direction, snake, food]);
@@ -191,7 +191,7 @@
                         {snake.map((segment, index) => (
                             <div
                                 key={index}
-                                className="absolute bg-green-500 rounded-sm"
+                                className="absolute bg-green-500 rounded-sm transition-all duration-150 ease-linear"
                                 style={{
                                     left: `${segment.x * 100 / gridSize}%`,
                                     top: `${segment.y * 100 / gridSize}%`,
@@ -201,7 +201,7 @@
                             />
                         ))}
                         <div
-                            className="absolute bg-red-500 rounded-full"
+                            className="absolute bg-red-500 rounded-full transition-all duration-150 ease-linear"
                             style={{
                                 left: `${food.x * 100 / gridSize}%`,
                                 top: `${food.y * 100 / gridSize}%`,
