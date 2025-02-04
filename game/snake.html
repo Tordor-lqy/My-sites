@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>贪吃蛇游戏</title>
+    <!-- React -->
+    <script src="https://unpkg.com/react@17/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@17/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- DaisyUI -->
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@3.9.4/dist/full.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        function App() {
+            const [snake, setSnake] = React.useState([{x: 10, y: 10}]);
+            const [food, setFood] = React.useState({x: 5, y: 5});
+            const [direction, setDirection] = React.useState('RIGHT');
+            const [gameOver, setGameOver] = React.useState(false);
+            const [score, setScore] = React.useState(0);
+            const [isPlaying, setIsPlaying] = React.useState(false);
+            const [joystickPos, setJoystickPos] = React.useState({ x: 0, y: 0 });
+            const [baseJoystickPos, setBaseJoystickPos] = React.useState(null);
+            const gameLoopRef = React.useRef();
+            const gridSize = 20;
+            const cellSize = React.useRef(0);
+            const containerRef = React.useRef(null);
+
+            // 计算游戏区域大小
+            React.useEffect(() => {
+                const updateSize = () => {
+                    if (containerRef.current) {
+                        const minDimension = Math.min(
+                            window.innerWidth * 0.9,
+                            window.innerHeight * 0.6
+                        );
+                        cellSize.current = Math.floor(minDimension / gridSize);
+                        containerRef.current.style.width = `${cellSize.current * gridSize}px`;
+                        containerRef.current.style.height = `${cellSize.current * gridSize}px`;
+                    }
+                };
+                updateSize();
+                window.addEventListener('resize', updateSize);
+                return () => window.removeEventListener('resize', updateSize);
+            }, []);
+
+            // 生成随机食物位置
+            const generateFood = () => {
+                const newFood = {
+                    x: Math.floor(Math.random() * gridSize),
+                    y: Math.floor(Math.random() * gridSize)
+                };
+                setFood(newFood);
+            };
+
+            // 检查碰撞
+            const checkCollision = (head) => {
+                return head.x < 0 || head.x >= gridSize || head.y < 0 || head.y >= gridSize ||
+                    snake.slice(1).some(segment => segment.x === head.x && segment.y === head.y);
+            };
+
+            // 移动蛇
+            const moveSnake = () => {
+                const newSnake = [...snake];
+                const head = {...newSnake[0]};
+
+                switch(direction) {
+                    case 'UP': head.y -= 1; break;
+                    case 'DOWN': head.y += 1; break;
+                    case 'LEFT': head.x -= 1; break;
+                    case 'RIGHT': head.x += 1; break;
+                }
+
+                if (checkCollision(head)) {
+                    setGameOver(true);
+                    setIsPlaying(false);
+                    return;
+                }
+
+                newSnake.unshift(head);
+
+                if (head.x === food.x && head.y === food.y) {
+                    setScore(score + 1);
+                    generateFood();
+                } else {
+                    newSnake.pop();
+                }
+
+                setSnake(newSnake);
+            };
+
+            // 游戏循环
+            React.useEffect(() => {
+                if (isPlaying && !gameOver) {
+                    gameLoopRef.current = setInterval(moveSnake, 150);
+                    return () => clearInterval(gameLoopRef.current);
+                }
+            }, [isPlaying, direction, snake, food]);
+
+            // 键盘控制
+            React.useEffect(() => {
+                const handleKeyPress = (e) => {
+                    if (!isPlaying) return;
+                    
+                    switch(e.key) {
+                        case 'ArrowUp':
+                            if (direction !== 'DOWN') setDirection('UP');
+                            break;
+                        case 'ArrowDown':
+                            if (direction !== 'UP') setDirection('DOWN');
+                            break;
+                        case 'ArrowLeft':
+                            if (direction !== 'RIGHT') setDirection('LEFT');
+                            break;
+                        case 'ArrowRight':
+                            if (direction !== 'LEFT') setDirection('RIGHT');
+                            break;
+                    }
+                };
+
+                document.addEventListener('keydown', handleKeyPress);
+                return () => document.removeEventListener('keydown', handleKeyPress);
+            }, [direction, isPlaying]);
+
+            // 虚拟摇杆控制
+            const handleJoystickStart = (e) => {
+                const touch = e.touches[0];
+                setBaseJoystickPos({ x: touch.clientX, y: touch.clientY });
+                setJoystickPos({ x: 0, y: 0 });
+            };
+
+            const handleJoystickMove = (e) => {
+                if (!baseJoystickPos || !isPlaying) return;
+                
+                const touch = e.touches[0];
+                const deltaX = touch.clientX - baseJoystickPos.x;
+                const deltaY = touch.clientY - baseJoystickPos.y;
+                const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+                const maxDistance = 50;
+
+                const normalizedX = deltaX / distance;
+                const normalizedY = deltaY / distance;
+
+                const limitedX = normalizedX * Math.min(distance, maxDistance);
+                const limitedY = normalizedY * Math.min(distance, maxDistance);
+
+                setJoystickPos({ x: limitedX, y: limitedY });
+
+                // 根据摇杆位置更新方向
+                if (Math.abs(limitedX) > Math.abs(limitedY)) {
+                    if (limitedX > 0 && direction !== 'LEFT') setDirection('RIGHT');
+                    if (limitedX < 0 && direction !== 'RIGHT') setDirection('LEFT');
+                } else {
+                    if (limitedY > 0 && direction !== 'UP') setDirection('DOWN');
+                    if (limitedY < 0 && direction !== 'DOWN') setDirection('UP');
+                }
+            };
+
+            const handleJoystickEnd = () => {
+                setBaseJoystickPos(null);
+                setJoystickPos({ x: 0, y: 0 });
+            };
+
+            // 重置游戏
+            const resetGame = () => {
+                setSnake([{x: 10, y: 10}]);
+                setDirection('RIGHT');
+                setScore(0);
+                setGameOver(false);
+                setIsPlaying(true);
+                generateFood();
+            };
+
+            return (
+                <div className="min-h-screen bg-gray-100 flex flex-col items-center justify-center p-4">
+                    <div className="text-center mb-4">
+                        <h1 className="text-3xl font-bold text-gray-800 mb-2">贪吃蛇</h1>
+                        <p className="text-xl text-gray-600">得分: {score}</p>
+                    </div>
+
+                    <div
+                        ref={containerRef}
+                        className="relative bg-white rounded-lg shadow-lg overflow-hidden"
+                        style={{ aspectRatio: '1' }}
+                    >
+                        {snake.map((segment, index) => (
+                            <div
+                                key={index}
+                                className="absolute bg-green-500 rounded-sm"
+                                style={{
+                                    left: `${segment.x * 100 / gridSize}%`,
+                                    top: `${segment.y * 100 / gridSize}%`,
+                                    width: `${100 / gridSize}%`,
+                                    height: `${100 / gridSize}%`,
+                                }}
+                            />
+                        ))}
+                        <div
+                            className="absolute bg-red-500 rounded-full"
+                            style={{
+                                left: `${food.x * 100 / gridSize}%`,
+                                top: `${food.y * 100 / gridSize}%`,
+                                width: `${100 / gridSize}%`,
+                                height: `${100 / gridSize}%`,
+                            }}
+                        />
+                    </div>
+
+                    {/* 虚拟摇杆 */}
+                    <div
+                        className="relative w-40 h-40 mt-8 touch-none"
+                        onTouchStart={handleJoystickStart}
+                        onTouchMove={handleJoystickMove}
+                        onTouchEnd={handleJoystickEnd}
+                    >
+                        <div className="absolute inset-0 bg-gray-200 rounded-full opacity-50" />
+                        <div
+                            className="absolute w-16 h-16 bg-gray-600 rounded-full"
+                            style={{
+                                left: '50%',
+                                top: '50%',
+                                transform: `translate(calc(-50% + ${joystickPos.x}px), calc(-50% + ${joystickPos.y}px))`
+                            }}
+                        />
+                    </div>
+
+                    <div className="mt-6">
+                        {!isPlaying && (
+                            <button
+                                className="btn btn-primary"
+                                onClick={resetGame}
+                            >
+                                {gameOver ? '重新开始' : '开始游戏'}
+                            </button>
+                        )}
+                    </div>
+
+                    {gameOver && (
+                        <div className="mt-4 text-xl text-red-600 font-bold">
+                            游戏结束!
+                        </div>
+                    )}
+                </div>
+            );
+        }
+
+        ReactDOM.render(<App />, document.getElementById('root'));
+    </script>
+</body>
+</html>
