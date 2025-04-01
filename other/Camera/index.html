@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>打开摄像头示例</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+        #webcam-feed {
+            width: 640px; /* 可以根据需要调整 */
+            max-width: 100%;
+            height: auto;   /* 保持宽高比 */
+            border: 2px solid #ccc;
+            background-color: #000; /* 视频加载前的背景色 */
+            margin-top: 15px;
+        }
+        #status {
+            margin-top: 10px;
+            color: #555;
+        }
+        button {
+            padding: 10px 15px;
+            font-size: 1em;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>摄像头实时画面</h1>
+
+    <div id="status">请点击按钮启动摄像头...</div>
+
+    <!-- 用于显示摄像头画面的 video 元素 -->
+    <video id="webcam-feed" autoplay playsinline></video>
+
+    <button id="start-button">启动摄像头</button>
+    <button id="stop-button" style="display: none;">停止摄像头</button>
+
+    <script>
+        const videoElement = document.getElementById('webcam-feed');
+        const startButton = document.getElementById('start-button');
+        const stopButton = document.getElementById('stop-button');
+        const statusDiv = document.getElementById('status');
+        let currentStream = null; // 用来保存当前的媒体流
+
+        // 检查浏览器是否支持 getUserMedia
+        if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+            startButton.addEventListener('click', startWebcam);
+            stopButton.addEventListener('click', stopWebcam);
+        } else {
+            statusDiv.textContent = '抱歉，您的浏览器不支持访问摄像头。';
+            startButton.disabled = true;
+        }
+
+        async function startWebcam() {
+            statusDiv.textContent = '正在请求摄像头权限...';
+            startButton.disabled = true;
+
+            // 定义要获取的媒体类型和约束
+            const constraints = {
+                video: {
+                    width: { ideal: 1280 }, // 期望的分辨率
+                    height: { ideal: 720 },
+                    facingMode: 'user' // 优先使用前置摄像头 ('environment' 表示后置)
+                },
+                audio: false // 本示例不需要音频
+            };
+
+            try {
+                // 请求访问摄像头
+                const stream = await navigator.mediaDevices.getUserMedia(constraints);
+                currentStream = stream; // 保存流以便后续停止
+
+                // 将获取到的视频流设置给 video 元素的 srcObject 属性
+                videoElement.srcObject = stream;
+
+                // 可选：监听视频加载完成事件
+                videoElement.onloadedmetadata = () => {
+                    statusDiv.textContent = '摄像头已启动。';
+                    startButton.style.display = 'none'; // 隐藏启动按钮
+                    stopButton.style.display = 'inline-block'; // 显示停止按钮
+                    console.log('摄像头流已加载');
+                };
+
+            } catch (error) {
+                // 处理错误（例如用户拒绝授权、找不到摄像头等）
+                console.error('访问摄像头时出错:', error);
+                statusDiv.textContent = `无法访问摄像头: ${error.name} - ${error.message}`;
+                startButton.disabled = false; // 允许用户重试
+            }
+        }
+
+        function stopWebcam() {
+            if (currentStream) {
+                // 获取流中的所有轨道 (track)
+                const tracks = currentStream.getTracks();
+                // 停止每一个轨道
+                tracks.forEach(track => track.stop());
+
+                videoElement.srcObject = null; // 清空 video 元素的源
+                currentStream = null; // 清除保存的流
+                statusDiv.textContent = '摄像头已停止。请点击按钮重新启动。';
+                startButton.style.display = 'inline-block'; // 显示启动按钮
+                stopButton.style.display = 'none';      // 隐藏停止按钮
+                startButton.disabled = false;
+                console.log('摄像头已停止');
+            }
+        }
+
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,1954 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>校内消息推送系统</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/alpinejs/3.12.0/cdn.min.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <style>
+    /* 莫兰迪配色 */
+    :root {
+      --morandi-blue: #94a3b8;
+      --morandi-green: #a7b29b;
+      --morandi-pink: #d7c0bb;
+      --morandi-beige: #e9dcc9;
+      --morandi-gray: #d1d5db;
+      --morandi-dark: #475569;
+    }
+
+    body {
+      font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+      background-color: #f8f9fa;
+    }
+
+    .morandi-bg-blue {
+      background-color: var(--morandi-blue);
+    }
+
+    .morandi-bg-green {
+      background-color: var(--morandi-green);
+    }
+
+    .morandi-bg-pink {
+      background-color: var(--morandi-pink);
+    }
+
+    .morandi-bg-beige {
+      background-color: var(--morandi-beige);
+    }
+
+    .morandi-bg-gray {
+      background-color: var(--morandi-gray);
+    }
+
+    .morandi-bg-dark {
+      background-color: var(--morandi-dark);
+    }
+
+    .morandi-text-dark {
+      color: var(--morandi-dark);
+    }
+
+    .bento-card {
+      border-radius: 16px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+      overflow: hidden;
+      transition: all 0.3s ease;
+    }
+
+    .bento-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.08);
+    }
+
+    .page-container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+  </style>
+</head>
+
+<body
+  x-data="{ currentPage: 'dashboard', sidebarOpen: window.innerWidth >= 768, showModal: false, modalContent: '', showAuthModal: false }">
+  <!-- 登录页面 -->
+  <div x-show="currentPage === 'login'" class="min-h-screen flex items-center justify-center bg-gray-50">
+    <div class="bento-card bg-white p-8 md:p-10 max-w-md w-full">
+      <div class="text-center mb-8">
+        <h1 class="text-2xl font-bold morandi-text-dark mb-2">
+          校内消息推送系统
+        </h1>
+        <p class="text-gray-500">辅导员/领导层专用消息推送平台</p>
+      </div>
+
+      <div class="space-y-6">
+        <div class="bento-card morandi-bg-beige p-6 text-center">
+          <div class="mb-4">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mx-auto text-gray-600" fill="none"
+              viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M12 4v1m6 11h2m-6 0h-2m0 0H8m4 0h4m-4-8a3 3 0 100 6 3 3 0 000-6z" />
+            </svg>
+          </div>
+          <p class="mb-4 font-medium">扫描二维码登录</p>
+          <div class="bg-white p-2 w-40 h-40 mx-auto rounded">
+            <div class="bg-gray-200 w-full h-full flex items-center justify-center">
+              <span class="text-xs text-gray-500">二维码区域</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="relative">
+          <div class="absolute inset-0 flex items-center">
+            <div class="w-full border-t border-gray-300"></div>
+          </div>
+          <div class="relative flex justify-center text-sm">
+            <span class="px-2 bg-white text-gray-500">或</span>
+          </div>
+        </div>
+
+        <div>
+          <button @click="currentPage = 'dashboard'; sidebarOpen = window.innerWidth >= 768"
+            class="w-full py-3 px-4 bento-card morandi-bg-blue text-white font-medium hover:bg-opacity-90 transition">
+            直接授权登录
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 主应用布局 -->
+  <div x-show="currentPage !== 'login'" class="min-h-screen flex flex-col">
+    <!-- 顶部导航栏 -->
+    <header class="bg-white shadow-sm">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between h-16">
+          <div class="flex">
+            <button @click="sidebarOpen = !sidebarOpen"
+              class="px-4 text-gray-500 focus:outline-none focus:text-gray-600 md:hidden">
+              <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            </button>
+            <div class="flex-shrink-0 flex items-center">
+              <span class="text-xl font-bold morandi-text-dark">校内消息推送系统</span>
+            </div>
+          </div>
+          <div class="flex items-center">
+            <div class="ml-3 relative" x-data="{ open: false }">
+              <div>
+                <button @click="open = !open"
+                  class="flex text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                  <div class="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-500" viewBox="0 0 20 20"
+                      fill="currentColor">
+                      <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"
+                        clip-rule="evenodd" />
+                    </svg>
+                  </div>
+                  <span class="ml-2 text-gray-700 text-sm font-medium hidden md:block">张老师</span>
+                </button>
+              </div>
+              <div x-show="open" @click.away="open = false"
+                class="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5">
+                <div class="py-1">
+                  <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">个人资料</a>
+                  <a href="#" @click.prevent="currentPage = 'login'"
+                    class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">退出登录</a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <div class="flex-1 flex">
+      <!-- 侧边栏 -->
+      <div x-show="sidebarOpen" @click.away="sidebarOpen = window.innerWidth >= 768 ? true : false"
+        class="fixed inset-y-0 left-0 z-30 w-64 transform transition duration-300 ease-in-out md:relative md:translate-x-0 bg-white border-r"
+        :class="{'translate-x-0': sidebarOpen, '-translate-x-full': !sidebarOpen}">
+        <div class="flex flex-col h-full">
+          <div class="flex items-center justify-center h-16 md:hidden">
+            <button @click="sidebarOpen = false" class="p-2 text-gray-500 focus:outline-none focus:text-gray-600">
+              <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+
+          <div class="px-4 py-4 md:hidden">
+            <div class="flex items-center">
+              <div class="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-500" viewBox="0 0 20 20"
+                  fill="currentColor">
+                  <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"
+                    clip-rule="evenodd" />
+                </svg>
+              </div>
+              <div class="ml-3">
+                <p class="text-sm font-medium text-gray-700">张老师</p>
+                <p class="text-xs text-gray-500">计算机学院</p>
+              </div>
+            </div>
+          </div>
+
+          <nav class="flex-1 px-2 py-4 space-y-1">
+            <a @click.prevent="currentPage = 'dashboard'" href="#"
+              class="group flex items-center px-2 py-2 text-sm font-medium rounded-md"
+              :class="currentPage === 'dashboard' ? 'morandi-bg-blue text-white' : 'text-gray-600 hover:bg-gray-100'">
+              <svg class="mr-3 h-5 w-5"
+                :class="currentPage === 'dashboard' ? 'text-white' : 'text-gray-500 group-hover:text-gray-600'"
+                fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+              </svg>
+              仪表盘
+            </a>
+            <a @click.prevent="currentPage = 'tasks'" href="#"
+              class="group flex items-center px-2 py-2 text-sm font-medium rounded-md"
+              :class="currentPage === 'tasks' ? 'morandi-bg-blue text-white' : 'text-gray-600 hover:bg-gray-100'">
+              <svg class="mr-3 h-5 w-5"
+                :class="currentPage === 'tasks' ? 'text-white' : 'text-gray-500 group-hover:text-gray-600'" fill="none"
+                viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+              </svg>
+              任务管理
+            </a>
+            <a @click.prevent="currentPage = 'create'" href="#"
+              class="group flex items-center px-2 py-2 text-sm font-medium rounded-md"
+              :class="currentPage === 'create' ? 'morandi-bg-blue text-white' : 'text-gray-600 hover:bg-gray-100'">
+              <svg class="mr-3 h-5 w-5"
+                :class="currentPage === 'create' ? 'text-white' : 'text-gray-500 group-hover:text-gray-600'" fill="none"
+                viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+              </svg>
+              创建任务
+            </a>
+            <a @click.prevent="currentPage = 'admin'" href="#"
+              class="group flex items-center px-2 py-2 text-sm font-medium rounded-md"
+              :class="currentPage === 'admin' ? 'morandi-bg-blue text-white' : 'text-gray-600 hover:bg-gray-100'">
+              <svg class="mr-3 h-5 w-5"
+                :class="currentPage === 'admin' ? 'text-white' : 'text-gray-500 group-hover:text-gray-600'" fill="none"
+                viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+              管理设置
+            </a>
+            <a @click.prevent="currentPage = 'stats'" href="#"
+              class="group flex items-center px-2 py-2 text-sm font-medium rounded-md"
+              :class="currentPage === 'stats' ? 'morandi-bg-blue text-white' : 'text-gray-600 hover:bg-gray-100'">
+              <svg class="mr-3 h-5 w-5"
+                :class="currentPage === 'stats' ? 'text-white' : 'text-gray-500 group-hover:text-gray-600'" fill="none"
+                viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+              </svg>
+              数据统计
+            </a>
+            <a @click.prevent="currentPage = 'approval'" href="#"
+              class="group flex items-center px-2 py-2 text-sm font-medium rounded-md"
+              :class="currentPage === 'approval' ? 'morandi-bg-blue text-white' : 'text-gray-600 hover:bg-gray-100'">
+              <svg class="mr-3 h-5 w-5"
+                :class="currentPage === 'approval' ? 'text-white' : 'text-gray-500 group-hover:text-gray-600'"
+                fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+              </svg>
+              推送审批
+            </a>
+          </nav>
+        </div>
+      </div>
+
+      <!-- 主内容区域 -->
+      <main class="flex-1 overflow-x-auto overflow-y-auto bg-gray-50">
+        <!-- 仪表盘页面 -->
+        <div x-show="currentPage === 'dashboard'" class="page-container">
+          <div class="mb-6">
+            <h1 class="text-2xl font-bold morandi-text-dark">仪表盘</h1>
+            <p class="text-gray-500">查看您的工作概览和最近的活动</p>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+            <div class="bento-card bg-white p-6">
+              <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-semibold morandi-text-dark">
+                  待处理任务
+                </h3>
+                <div class="h-10 w-10 rounded-full morandi-bg-blue text-white flex items-center justify-center">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                  </svg>
+                </div>
+              </div>
+              <div class="text-3xl font-bold mb-2 morandi-text-dark">5</div>
+              <p class="text-gray-500 text-sm">
+                较上周 <span class="text-green-500">+2</span>
+              </p>
+            </div>
+
+            <div class="bento-card bg-white p-6">
+              <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-semibold morandi-text-dark">
+                  审批中任务
+                </h3>
+                <div class="h-10 w-10 rounded-full morandi-bg-pink text-white flex items-center justify-center">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+              </div>
+              <div class="text-3xl font-bold mb-2 morandi-text-dark">3</div>
+              <p class="text-gray-500 text-sm">
+                较上周 <span class="text-yellow-500">0</span>
+              </p>
+            </div>
+
+            <div class="bento-card bg-white p-6">
+              <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-semibold morandi-text-dark">
+                  已完成任务
+                </h3>
+                <div class="h-10 w-10 rounded-full morandi-bg-green text-white flex items-center justify-center">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+              </div>
+              <div class="text-3xl font-bold mb-2 morandi-text-dark">12</div>
+              <p class="text-gray-500 text-sm">
+                较上周 <span class="text-green-500">+5</span>
+              </p>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div class="lg:col-span-2 bento-card bg-white p-6">
+              <h3 class="text-lg font-semibold mb-4 morandi-text-dark">
+                最近任务
+              </h3>
+              <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                  <thead>
+                    <tr>
+                      <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        任务名称
+                      </th>
+                      <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        状态
+                      </th>
+                      <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        创建时间
+                      </th>
+                      <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        发送对象
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody class="bg-white divide-y divide-gray-200">
+                    <tr>
+                      <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
+                        期末考试通知
+                      </td>
+                      <td class="px-4 py-3 whitespace-nowrap text-sm">
+                        <span
+                          class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">已发送</span>
+                      </td>
+                      <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
+                        2025-03-25
+                      </td>
+                      <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
+                        计算机科学与技术
+                      </td>
+                    </tr>
+                    <tr>
+                      <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
+                        奖学金申请提醒
+                      </td>
+                      <td class="px-4 py-3 whitespace-nowrap text-sm">
+                        <span
+                          class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">审批中</span>
+                      </td>
+                      <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
+                        2025-03-24
+                      </td>
+                      <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
+                        全校学生
+                      </td>
+                    </tr>
+                    <tr>
+                      <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
+                        安全教育通知
+                      </td>
+                      <td class="px-4 py-3 whitespace-nowrap text-sm">
+                        <span
+                          class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">草稿</span>
+                      </td>
+                      <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
+                        2025-03-22
+                      </td>
+                      <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
+                        2023级全体学生
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <div class="mt-4 text-right">
+                <a @click.prevent="currentPage = 'tasks'" href="#"
+                  class="text-sm font-medium text-blue-600 hover:text-blue-500">查看所有任务 →</a>
+              </div>
+            </div>
+
+            <div class="bento-card bg-white p-6">
+              <h3 class="text-lg font-semibold mb-4 morandi-text-dark">
+                消息发送统计
+              </h3>
+              <div class="space-y-4">
+                <div>
+                  <div class="flex justify-between items-center mb-1">
+                    <span class="text-sm text-gray-600">本月发送总量</span>
+                    <span class="text-sm font-medium text-gray-900">78%</span>
+                  </div>
+                  <div class="w-full bg-gray-200 rounded-full h-2">
+                    <div class="morandi-bg-blue h-2 rounded-full" style="width: 78%"></div>
+                  </div>
+                </div>
+                <div>
+                  <div class="flex justify-between items-center mb-1">
+                    <span class="text-sm text-gray-600">平均阅读率</span>
+                    <span class="text-sm font-medium text-gray-900">92%</span>
+                  </div>
+                  <div class="w-full bg-gray-200 rounded-full h-2">
+                    <div class="morandi-bg-green h-2 rounded-full" style="width: 92%"></div>
+                  </div>
+                </div>
+                <div>
+                  <div class="flex justify-between items-center mb-1">
+                    <span class="text-sm text-gray-600">审批通过率</span>
+                    <span class="text-sm font-medium text-gray-900">86%</span>
+                  </div>
+                  <div class="w-full bg-gray-200 rounded-full h-2">
+                    <div class="morandi-bg-pink h-2 rounded-full" style="width: 86%"></div>
+                  </div>
+                </div>
+              </div>
+              <div class="mt-6">
+                <div class="bg-gray-50 p-4 rounded-lg">
+                  <h4 class="text-sm font-medium text-gray-900 mb-2">
+                    消息类型分布
+                  </h4>
+                  <div class="flex items-center space-x-4">
+                    <div class="flex-1">
+                      <div class="h-24 flex items-end space-x-2">
+                        <div class="w-1/4 morandi-bg-blue rounded-t" style="height: 70%"></div>
+                        <div class="w-1/4 morandi-bg-pink rounded-t" style="height: 40%"></div>
+                        <div class="w-1/4 morandi-bg-green rounded-t" style="height: 90%"></div>
+                        <div class="w-1/4 morandi-bg-beige rounded-t" style="height: 60%"></div>
+                      </div>
+                      <div class="flex text-xs text-gray-500 mt-1">
+                        <div class="w-1/4 text-center">通知</div>
+                        <div class="w-1/4 text-center">提醒</div>
+                        <div class="w-1/4 text-center">活动</div>
+                        <div class="w-1/4 text-center">其他</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 任务管理页面（继续） -->
+        <div x-show="currentPage === 'tasks'" class="page-container">
+          <div class="mb-6 flex flex-col md:flex-row md:items-center md:justify-between">
+            <div>
+              <h1 class="text-2xl font-bold morandi-text-dark">任务管理</h1>
+              <p class="text-gray-500">管理您的消息推送任务</p>
+            </div>
+            <div class="mt-4 md:mt-0">
+              <button @click="currentPage = 'create'"
+                class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white morandi-bg-blue hover:bg-opacity-90 focus:outline-none">
+                <svg class="-ml-1 mr-2 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                </svg>
+                创建新任务
+              </button>
+            </div>
+          </div>
+
+          <div class="bento-card bg-white mb-6">
+            <div class="p-4 border-b">
+              <div class="flex flex-col md:flex-row md:items-center md:space-x-4">
+                <div class="w-full md:w-64 mb-2 md:mb-0">
+                  <label for="status-filter" class="sr-only">状态筛选</label>
+                  <select id="status-filter"
+                    class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
+                    <option value="">所有状态</option>
+                    <option value="draft">草稿</option>
+                    <option value="pending">审批中</option>
+                    <option value="approved">已审批</option>
+                    <option value="sent">已发送</option>
+                    <option value="rejected">已拒绝</option>
+                  </select>
+                </div>
+                <div class="w-full md:w-64 mb-2 md:mb-0">
+                  <label for="date-filter" class="sr-only">日期筛选</label>
+                  <select id="date-filter"
+                    class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
+                    <option value="">所有时间</option>
+                    <option value="today">今天</option>
+                    <option value="week">本周</option>
+                    <option value="month">本月</option>
+                    <option value="quarter">本季度</option>
+                  </select>
+                </div>
+                <div class="flex-1">
+                  <label for="search" class="sr-only">搜索</label>
+                  <div class="relative rounded-md shadow-sm">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <svg class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                      </svg>
+                    </div>
+                    <input type="text" id="search"
+                      class="block w-full pl-10 sm:text-sm border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                      placeholder="搜索任务名称、接收人等" />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="overflow-x-auto">
+              <table class="min-w-full divide-y divide-gray-200">
+                <thead>
+                  <tr>
+                    <th scope="col"
+                      class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      任务名称
+                    </th>
+                    <th scope="col"
+                      class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      状态
+                    </th>
+                    <th scope="col"
+                      class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      创建时间
+                    </th>
+                    <th scope="col"
+                      class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      计划发送时间
+                    </th>
+                    <th scope="col"
+                      class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      接收人数
+                    </th>
+                    <th scope="col"
+                      class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      审批人
+                    </th>
+                    <th scope="col"
+                      class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      操作
+                    </th>
+                  </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                  <tr>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <div class="text-sm font-medium text-gray-900">
+                        期末考试通知
+                      </div>
+                      <div class="text-sm text-gray-500">考试安排发布</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <span
+                        class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">已发送</span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      2025-03-25
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      2025-03-25 16:00
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      158
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      王主任
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                      <a href="#" class="text-blue-600 hover:text-blue-900 mr-3">查看</a>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <div class="text-sm font-medium text-gray-900">
+                        奖学金申请提醒
+                      </div>
+                      <div class="text-sm text-gray-500">截止时间提醒</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <span
+                        class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">审批中</span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      2025-03-24
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      2025-03-30 09:00
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      3452
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      李院长
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                      <a href="#" class="text-blue-600 hover:text-blue-900 mr-3">查看</a>
+                      <a href="#" class="text-blue-600 hover:text-blue-900 mr-3">编辑</a>
+                      <a href="#" class="text-red-600 hover:text-red-900">撤销</a>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <div class="text-sm font-medium text-gray-900">
+                        安全教育通知
+                      </div>
+                      <div class="text-sm text-gray-500">校园安全月活动</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <span
+                        class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">草稿</span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      2025-03-22
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      未设置
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      1256
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      未指定
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                      <a href="#" class="text-blue-600 hover:text-blue-900 mr-3">查看</a>
+                      <a href="#" class="text-blue-600 hover:text-blue-900 mr-3">编辑</a>
+                      <a href="#" class="text-red-600 hover:text-red-900">删除</a>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <div class="text-sm font-medium text-gray-900">
+                        入党积极分子培训
+                      </div>
+                      <div class="text-sm text-gray-500">培训班报名通知</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <span
+                        class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">已拒绝</span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      2025-03-20
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      2025-03-21 10:00
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      87
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      张书记
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                      <a href="#" class="text-blue-600 hover:text-blue-900 mr-3">查看</a>
+                      <a href="#" class="text-blue-600 hover:text-blue-900 mr-3">编辑</a>
+                      <a href="#" class="text-red-600 hover:text-red-900">删除</a>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <div class="text-sm font-medium text-gray-900">
+                        就业指导讲座
+                      </div>
+                      <div class="text-sm text-gray-500">企业宣讲会</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <span
+                        class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">已发送</span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      2025-03-18
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      2025-03-19 14:00
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      245
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      陈主任
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                      <a href="#" class="text-blue-600 hover:text-blue-900 mr-3">查看</a>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="bg-white px-4 py-3 flex items-center justify-between border-t sm:px-6">
+              <div class="flex-1 flex justify-between sm:hidden">
+                <a href="#"
+                  class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">上一页</a>
+                <a href="#"
+                  class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">下一页</a>
+              </div>
+              <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                <div>
+                  <p class="text-sm text-gray-700">
+                    显示第 <span class="font-medium">1</span> 到
+                    <span class="font-medium">5</span> 条，共
+                    <span class="font-medium">12</span> 条结果
+                  </p>
+                </div>
+                <div>
+                  <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                    <a href="#"
+                      class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                      <span class="sr-only">上一页</span>
+                      <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"
+                        aria-hidden="true">
+                        <path fill-rule="evenodd"
+                          d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z"
+                          clip-rule="evenodd" />
+                      </svg>
+                    </a>
+                    <a href="#" aria-current="page"
+                      class="z-10 bg-blue-50 border-blue-500 text-blue-600 relative inline-flex items-center px-4 py-2 border text-sm font-medium">1</a>
+                    <a href="#"
+                      class="bg-white border-gray-300 text-gray-500 hover:bg-gray-50 relative inline-flex items-center px-4 py-2 border text-sm font-medium">2</a>
+                    <a href="#"
+                      class="bg-white border-gray-300 text-gray-500 hover:bg-gray-50 relative inline-flex items-center px-4 py-2 border text-sm font-medium">3</a>
+                    <a href="#"
+                      class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                      <span class="sr-only">下一页</span>
+                      <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"
+                        aria-hidden="true">
+                        <path fill-rule="evenodd"
+                          d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
+                          clip-rule="evenodd" />
+                      </svg>
+                    </a>
+                  </nav>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 审批管理页面 -->
+        <div x-show="currentPage === 'approval'" class="page-container">
+          <div class="mb-6 flex flex-col md:flex-row md:items-center md:justify-between">
+            <div>
+              <h1 class="text-2xl font-bold morandi-text-dark">审批管理</h1>
+              <p class="text-gray-500">管理待审批和已审批的消息推送任务</p>
+            </div>
+            <div class="mt-4 md:mt-0 flex space-x-3">
+              <div class="relative">
+                <select
+                  class="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md">
+                  <option selected>全部状态</option>
+                  <option>待审批</option>
+                  <option>已通过</option>
+                  <option>已拒绝</option>
+                </select>
+              </div>
+              <button
+                class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white morandi-bg-blue hover:bg-opacity-90 focus:outline-none">
+                <svg class="-ml-1 mr-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                  stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+                </svg>
+                筛选
+              </button>
+            </div>
+          </div>
+
+          <!-- 审批统计卡片 -->
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div class="bento-card bg-white p-6">
+              <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-semibold morandi-text-dark">待审批</h3>
+                <div class="h-10 w-10 rounded-full morandi-bg-blue text-white flex items-center justify-center">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+              </div>
+              <div class="text-3xl font-bold mb-2 morandi-text-dark">8</div>
+              <p class="text-gray-500 text-sm">较昨日 <span class="text-green-500">-2</span></p>
+            </div>
+
+            <div class="bento-card bg-white p-6">
+              <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-semibold morandi-text-dark">已通过</h3>
+                <div class="h-10 w-10 rounded-full morandi-bg-green text-white flex items-center justify-center">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+              </div>
+              <div class="text-3xl font-bold mb-2 morandi-text-dark">124</div>
+              <p class="text-gray-500 text-sm">本月共计 <span class="font-medium">32</span> 条</p>
+            </div>
+
+            <div class="bento-card bg-white p-6">
+              <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-semibold morandi-text-dark">已拒绝</h3>
+                <div class="h-10 w-10 rounded-full morandi-bg-pink text-white flex items-center justify-center">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </div>
+              </div>
+              <div class="text-3xl font-bold mb-2 morandi-text-dark">18</div>
+              <p class="text-gray-500 text-sm">本月共计 <span class="font-medium">5</span> 条</p>
+            </div>
+          </div>
+
+          <!-- 待审批任务 -->
+          <div class="bento-card bg-white p-6 mb-8">
+            <h3 class="text-lg font-semibold mb-4 morandi-text-dark">待审批任务</h3>
+            <div class="overflow-x-auto">
+              <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                  <tr>
+                    <th scope="col"
+                      class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      任务标题
+                    </th>
+                    <th scope="col"
+                      class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      提交人
+                    </th>
+                    <th scope="col"
+                      class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      提交时间
+                    </th>
+                    <th scope="col"
+                      class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      接收人数
+                    </th>
+                    <th scope="col"
+                      class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      紧急程度
+                    </th>
+                    <th scope="col"
+                      class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      操作
+                    </th>
+                  </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                  <tr>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <div class="text-sm font-medium text-gray-900">期末考试安排通知</div>
+                      <div class="text-xs text-gray-500">计算机学院 - 全体学生</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <div class="flex items-center">
+                        <div class="flex-shrink-0 h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center">
+                          <span class="text-xs font-medium text-gray-500">张</span>
+                        </div>
+                        <div class="ml-3">
+                          <div class="text-sm font-medium text-gray-900">张老师</div>
+                          <div class="text-xs text-gray-500">计算机学院</div>
+                        </div>
+                      </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      2023-06-15 14:30
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      1,245人
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <span
+                        class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                        中等
+                      </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                      <div class="flex space-x-2">
+                        <button class="text-blue-600 hover:text-blue-900">查看</button>
+                        <button class="text-green-600 hover:text-green-900">通过</button>
+                        <button class="text-red-600 hover:text-red-900">拒绝</button>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <div class="text-sm font-medium text-gray-900">学生会招新通知</div>
+                      <div class="text-xs text-gray-500">学生会 - 大一新生</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <div class="flex items-center">
+                        <div class="flex-shrink-0 h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center">
+                          <span class="text-xs font-medium text-gray-500">李</span>
+                        </div>
+                        <div class="ml-3">
+                          <div class="text-sm font-medium text-gray-900">李老师</div>
+                          <div class="text-xs text-gray-500">学生处</div>
+                        </div>
+                      </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      2023-06-14 16:45
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      458人
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <span
+                        class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                        普通
+                      </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                      <div class="flex space-x-2">
+                        <button class="text-blue-600 hover:text-blue-900">查看</button>
+                        <button class="text-green-600 hover:text-green-900">通过</button>
+                        <button class="text-red-600 hover:text-red-900">拒绝</button>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <div class="text-sm font-medium text-gray-900">校园网络维护通知</div>
+                      <div class="text-xs text-gray-500">信息中心 - 全校师生</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <div class="flex items-center">
+                        <div class="flex-shrink-0 h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center">
+                          <span class="text-xs font-medium text-gray-500">王</span>
+                        </div>
+                        <div class="ml-3">
+                          <div class="text-sm font-medium text-gray-900">王老师</div>
+                          <div class="text-xs text-gray-500">信息中心</div>
+                        </div>
+                      </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      2023-06-14 09:15
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      5,782人
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <span
+                        class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
+                        紧急
+                      </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                      <div class="flex space-x-2">
+                        <button class="text-blue-600 hover:text-blue-900">查看</button>
+                        <button class="text-green-600 hover:text-green-900">通过</button>
+                        <button class="text-red-600 hover:text-red-900">拒绝</button>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="mt-4 flex justify-between items-center">
+              <div class="text-sm text-gray-700">
+                显示 <span class="font-medium">1</span> 到 <span class="font-medium">3</span> 条，共 <span
+                  class="font-medium">8</span> 条结果
+              </div>
+              <div class="flex space-x-2">
+                <button
+                  class="px-3 py-1 border border-gray-300 rounded-md text-sm text-gray-700 bg-white hover:bg-gray-50">上一页</button>
+                <button
+                  class="px-3 py-1 border border-gray-300 rounded-md text-sm text-gray-700 bg-white hover:bg-gray-50">下一页</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- 审批详情弹窗 -->
+          <div x-data="{ showModal: false }" class="relative z-10">
+            <!-- 弹窗背景 -->
+            <div x-show="showModal" class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"></div>
+
+            <!-- 弹窗内容 -->
+            <div x-show="showModal" class="fixed inset-0 z-10 overflow-y-auto">
+              <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+                <div
+                  class="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-3xl">
+                  <div class="bg-white px-4 pb-4 pt-5 sm:p-6 sm:pb-4">
+                    <div class="sm:flex sm:items-start">
+                      <div class="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left w-full">
+                        <h3 class="text-xl font-semibold leading-6 text-gray-900 mb-4">审批详情</h3>
+
+                        <div class="border-b pb-4 mb-4">
+                          <div class="flex justify-between items-center mb-2">
+                            <h4 class="text-lg font-medium text-gray-900">期末考试安排通知</h4>
+                            <span class="px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                              中等优先级
+                            </span>
+                          </div>
+                          <div class="flex items-center text-sm text-gray-500 mb-4">
+                            <div
+                              class="flex-shrink-0 h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center mr-2">
+                              <span class="text-xs font-medium text-gray-500">张</span>
+                            </div>
+                            <span>张老师 (计算机学院) · 2023-06-15 14:30 提交</span>
+                          </div>
+
+                          <div class="bg-gray-50 p-4 rounded-md mb-4">
+                            <h5 class="font-medium text-gray-700 mb-2">消息内容</h5>
+                            <p class="text-gray-600 mb-2">各位同学：</p>
+                            <p class="text-gray-600 mb-2">2023年春季学期期末考试将于7月1日至7月10日进行，具体安排如下：</p>
+                            <ol class="list-decimal pl-5 text-gray-600 mb-2">
+                              <li>考试时间：上午9:00-11:00，下午14:00-16:00</li>
+                              <li>考试地点：详见教务系统通知</li>
+                              <li>请携带学生证和身份证参加考试</li>
+                            </ol>
+                            <p class="text-gray-600">请各位同学合理安排复习时间，祝考试顺利！</p>
+                          </div>
+
+                          <div class="flex items-center justify-between">
+                            <div>
+                              <span class="text-sm text-gray-500">接收范围：</span>
+                              <span class="text-sm font-medium text-gray-700">计算机学院 - 全体学生</span>
+                            </div>
+                            <div>
+                              <span class="text-sm text-gray-500">接收人数：</span>
+                              <span class="text-sm font-medium text-gray-700">1,245人</span>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div class="mb-4">
+                          <label for="approval-comment"
+                            class="block text-sm font-medium text-gray-700 mb-1">审批意见</label>
+                          <textarea id="approval-comment" rows="3"
+                            class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                            placeholder="请输入审批意见..."></textarea>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="bg-gray-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6">
+                    <button type="button"
+                      class="inline-flex w-full justify-center rounded-md bg-green-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-green-500 sm:ml-3 sm:w-auto">
+                      通过审批
+                    </button>
+                    <button type="button"
+                      class="mt-3 inline-flex w-full justify-center rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500 sm:ml-3 sm:mt-0 sm:w-auto">
+                      拒绝审批
+                    </button>
+                    <button type="button" @click="showModal = false"
+                      class="mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:mt-0 sm:w-auto">
+                      关闭
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 历史审批记录 -->
+          <div class="bento-card bg-white p-6">
+            <div class="flex justify-between items-center mb-4">
+              <h3 class="text-lg font-semibold morandi-text-dark">历史审批记录</h3>
+              <div class="flex items-center">
+                <input type="text" placeholder="搜索任务标题或提交人"
+                  class="rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm mr-2">
+                <button
+                  class="inline-flex items-center px-3 py-1.5 border border-transparent text-sm font-medium rounded-md shadow-sm text-white morandi-bg-blue hover:bg-opacity-90 focus:outline-none">
+                  搜索
+                </button>
+              </div>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                  <tr>
+                    <th scope="col"
+                      class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      任务标题
+                    </th>
+                    <th scope="col"
+                      class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      提交人
+                    </th>
+                    <th scope="col"
+                      class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      审批人
+                    </th>
+                    <th scope="col"
+                      class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      审批时间
+                    </th>
+                    <th scope="col"
+                      class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      审批结果
+                    </th>
+                    <th scope="col"
+                      class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      操作
+                    </th>
+                  </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                  <tr>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <div class="text-sm font-medium text-gray-900">教师节活动通知</div>
+                      <div class="text-xs text-gray-500">学生会 - 全校学生</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <div class="text-sm text-gray-900">李老师</div>
+                      <div class="text-xs text-gray-500">学生处</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <div class="text-sm text-gray-900">陈主任</div>
+                      <div class="text-xs text-gray-500">学生处</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      2023-06-10 15:20
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <span
+                        class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                        已通过
+                      </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                      <button class="text-blue-600 hover:text-blue-900">查看详情</button>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <div class="text-sm font-medium text-gray-900">宿舍卫生检查通知</div>
+                      <div class="text-xs text-gray-500">后勤处 - 全体住宿生</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <div class="text-sm text-gray-900">赵老师</div>
+                      <div class="text-xs text-gray-500">后勤处</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <div class="text-sm text-gray-900">王主任</div>
+                      <div class="text-xs text-gray-500">后勤处</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      2023-06-08 11:35
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <span
+                        class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                        已通过
+                      </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                      <button class="text-blue-600 hover:text-blue-900">查看详情</button>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <div class="text-sm font-medium text-gray-900">校园歌手大赛通知</div>
+                      <div class="text-xs text-gray-500">艺术团 - 全校学生</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <div class="text-sm text-gray-900">孙老师</div>
+                      <div class="text-xs text-gray-500">艺术团</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <div class="text-sm text-gray-900">刘主任</div>
+                      <div class="text-xs text-gray-500">学生处</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      2023-06-05 16:40
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <span
+                        class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
+                        已拒绝
+                      </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                      <button class="text-blue-600 hover:text-blue-900">查看详情</button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="mt-4 flex justify-between items-center">
+              <div class="text-sm text-gray-700">
+                显示 <span class="font-medium">1</span> 到 <span class="font-medium">3</span> 条，共 <span
+                  class="font-medium">142</span> 条结果
+              </div>
+              <div class="flex space-x-2">
+                <button
+                  class="px-3 py-1 border border-gray-300 rounded-md text-sm text-gray-700 bg-white hover:bg-gray-50">上一页</button>
+                <button
+                  class="px-3 py-1 border border-gray-300 rounded-md text-sm text-gray-700 bg-white hover:bg-gray-50">下一页</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 创建任务页面 -->
+        <div x-show="currentPage === 'create'" class="page-container">
+          <div class="mb-6">
+            <h1 class="text-2xl font-bold morandi-text-dark">创建推送任务</h1>
+            <p class="text-gray-500">创建新的消息推送任务，填写完成后将提交审批</p>
+          </div>
+
+          <div class="bento-card bg-white p-6 mb-6">
+            <div class="mb-6">
+              <h2 class="text-lg font-semibold morandi-text-dark mb-4">基本信息</h2>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label for="task-name" class="block text-sm font-medium text-gray-700 mb-1">任务名称</label>
+                  <input type="text" id="task-name"
+                    class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                    placeholder="请输入任务名称">
+                </div>
+                <div>
+                  <label for="task-category" class="block text-sm font-medium text-gray-700 mb-1">消息类型</label>
+                  <select id="task-category"
+                    class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
+                    <option value="notice">通知</option>
+                    <option value="reminder">提醒</option>
+                    <option value="activity">活动</option>
+                    <option value="other">其他</option>
+                  </select>
+                </div>
+                <div>
+                  <label for="send-time" class="block text-sm font-medium text-gray-700 mb-1">计划发送时间</label>
+                  <input type="datetime-local" id="send-time"
+                    class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
+                </div>
+                <div>
+                  <label for="approver" class="block text-sm font-medium text-gray-700 mb-1">审批人</label>
+                  <select id="approver"
+                    class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
+                    <option value="">请选择审批人</option>
+                    <option value="1">王主任</option>
+                    <option value="2">李院长</option>
+                    <option value="3">张书记</option>
+                    <option value="4">陈主任</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div class="mb-6">
+              <h2 class="text-lg font-semibold morandi-text-dark mb-4">接收对象</h2>
+              <div class="mb-4">
+                <div class="flex items-center space-x-4 mb-4">
+                  <div class="flex items-center">
+                    <input id="scope-all" name="scope" type="radio"
+                      class="h-4 w-4 border-gray-300 text-blue-600 focus:ring-blue-500">
+                    <label for="scope-all" class="ml-2 block text-sm text-gray-700">全校学生</label>
+                  </div>
+                  <div class="flex items-center">
+                    <input id="scope-college" name="scope" type="radio"
+                      class="h-4 w-4 border-gray-300 text-blue-600 focus:ring-blue-500">
+                    <label for="scope-college" class="ml-2 block text-sm text-gray-700">按学院</label>
+                  </div>
+                  <div class="flex items-center">
+                    <input id="scope-major" name="scope" type="radio"
+                      class="h-4 w-4 border-gray-300 text-blue-600 focus:ring-blue-500">
+                    <label for="scope-major" class="ml-2 block text-sm text-gray-700">按专业</label>
+                  </div>
+                  <div class="flex items-center">
+                    <input id="scope-class" name="scope" type="radio"
+                      class="h-4 w-4 border-gray-300 text-blue-600 focus:ring-blue-500">
+                    <label for="scope-class" class="ml-2 block text-sm text-gray-700">按班级</label>
+                  </div>
+                  <div class="flex items-center">
+                    <input id="scope-custom" name="scope" type="radio"
+                      class="h-4 w-4 border-gray-300 text-blue-600 focus:ring-blue-500" checked>
+                    <label for="scope-custom" class="ml-2 block text-sm text-gray-700">自定义</label>
+                  </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                  <div>
+                    <label for="college-filter" class="block text-sm font-medium text-gray-700 mb-1">学院</label>
+                    <select id="college-filter"
+                      class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
+                      <option value="">全部学院</option>
+                      <option value="1">计算机学院</option>
+                      <option value="2">机械工程学院</option>
+                      <option value="3">电子信息学院</option>
+                      <option value="4">经济管理学院</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label for="major-filter" class="block text-sm font-medium text-gray-700 mb-1">专业</label>
+                    <select id="major-filter"
+                      class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
+                      <option value="">全部专业</option>
+                      <option value="1">计算机科学与技术</option>
+                      <option value="2">软件工程</option>
+                      <option value="3">人工智能</option>
+                      <option value="4">网络工程</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label for="class-filter" class="block text-sm font-medium text-gray-700 mb-1">班级</label>
+                    <select id="class-filter"
+                      class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
+                      <option value="">全部班级</option>
+                      <option value="1">计算机2301班</option>
+                      <option value="2">计算机2302班</option>
+                      <option value="3">软件2301班</option>
+                      <option value="4">软件2302班</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div class="flex justify-between items-center mb-2">
+                  <div class="flex items-center">
+                    <input id="search-student" type="text"
+                      class="rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                      placeholder="搜索学号或姓名">
+                    <button
+                      class="ml-2 inline-flex items-center px-3 py-1.5 border border-transparent text-sm font-medium rounded-md shadow-sm text-white morandi-bg-blue hover:bg-opacity-90 focus:outline-none">
+                      搜索
+                    </button>
+                  </div>
+                  <div>
+                    <span class="text-sm text-gray-500">已选择: <span class="font-medium text-blue-600">12</span> 人</span>
+                    <button class="ml-2 text-sm text-blue-600 hover:text-blue-500">清空</button>
+                  </div>
+                </div>
+
+                <div class="border rounded-md overflow-hidden">
+                  <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                      <thead class="bg-gray-50">
+                        <tr>
+                          <th scope="col"
+                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            <input type="checkbox"
+                              class="h-4 w-4 border-gray-300 rounded text-blue-600 focus:ring-blue-500">
+                          </th>
+                          <th scope="col"
+                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            学号
+                          </th>
+                          <th scope="col"
+                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            姓名
+                          </th>
+                          <th scope="col"
+                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            学院
+                          </th>
+                          <th scope="col"
+                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            专业
+                          </th>
+                          <th scope="col"
+                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            班级
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody class="bg-white divide-y divide-gray-200">
+                        <tr>
+                          <td class="px-6 py-4 whitespace-nowrap">
+                            <input type="checkbox"
+                              class="h-4 w-4 border-gray-300 rounded text-blue-600 focus:ring-blue-500" checked>
+                          </td>
+                          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">2023001001</td>
+                          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">张三</td>
+                          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">计算机学院</td>
+                          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">计算机科学与技术</td>
+                          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">计算机2301班</td>
+                        </tr>
+                        <tr>
+                          <td class="px-6 py-4 whitespace-nowrap">
+                            <input type="checkbox"
+                              class="h-4 w-4 border-gray-300 rounded text-blue-600 focus:ring-blue-500" checked>
+                          </td>
+                          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">2023001002</td>
+                          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">李四</td>
+                          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">计算机学院</td>
+                          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">计算机科学与技术</td>
+                          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">计算机2301班</td>
+                        </tr>
+                        <tr>
+                          <td class="px-6 py-4 whitespace-nowrap">
+                            <input type="checkbox"
+                              class="h-4 w-4 border-gray-300 rounded text-blue-600 focus:ring-blue-500" checked>
+                          </td>
+                          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">2023001003</td>
+                          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">王五</td>
+                          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">计算机学院</td>
+                          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">计算机科学与技术</td>
+                          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">计算机2301班</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                  <div class="bg-white px-4 py-3 flex items-center justify-between border-t sm:px-6">
+                    <div class="flex-1 flex justify-between sm:hidden">
+                      <a href="#"
+                        class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">上一页</a>
+                      <a href="#"
+                        class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">下一页</a>
+                    </div>
+                    <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                      <div>
+                        <p class="text-sm text-gray-700">
+                          显示第 <span class="font-medium">1</span> 到 <span class="font-medium">3</span> 条，共 <span
+                            class="font-medium">12</span> 条结果
+                        </p>
+                      </div>
+                      <div>
+                        <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                          <a href="#"
+                            class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                            <span class="sr-only">上一页</span>
+                            <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"
+                              fill="currentColor" aria-hidden="true">
+                              <path fill-rule="evenodd"
+                                d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z"
+                                clip-rule="evenodd" />
+                            </svg>
+                          </a>
+                          <a href="#" aria-current="page"
+                            class="z-10 bg-blue-50 border-blue-500 text-blue-600 relative inline-flex items-center px-4 py-2 border text-sm font-medium">1</a>
+                          <a href="#"
+                            class="bg-white border-gray-300 text-gray-500 hover:bg-gray-50 relative inline-flex items-center px-4 py-2 border text-sm font-medium">2</a>
+                          <a href="#"
+                            class="bg-white border-gray-300 text-gray-500 hover:bg-gray-50 relative inline-flex items-center px-4 py-2 border text-sm font-medium">3</a>
+                          <a href="#"
+                            class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                            <span class="sr-only">下一页</span>
+                            <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"
+                              fill="currentColor" aria-hidden="true">
+                              <path fill-rule="evenodd"
+                                d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
+                                clip-rule="evenodd" />
+                            </svg>
+                          </a>
+                        </nav>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="mb-6">
+              <h2 class="text-lg font-semibold morandi-text-dark mb-4">消息内容</h2>
+              <div class="mb-4">
+                <label for="message-title" class="block text-sm font-medium text-gray-700 mb-1">消息标题</label>
+                <input type="text" id="message-title"
+                  class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                  placeholder="请输入消息标题">
+              </div>
+              <div class="mb-4">
+                <label for="message-content" class="block text-sm font-medium text-gray-700 mb-1">消息内容</label>
+                <div class="border rounded-md overflow-hidden">
+                  <div class="bg-gray-50 px-3 py-2 border-b flex items-center space-x-2">
+                    <button class="p-1 text-gray-500 hover:text-gray-700 rounded">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M4 6h16M4 12h10M4 18h16" />
+                      </svg>
+                    </button>
+                    <button class="p-1 text-gray-500 hover:text-gray-700 rounded">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M13 10V3L4 14h7v7l9-11h-7z" />
+                      </svg>
+                    </button>
+                    <button class="p-1 text-gray-500 hover:text-gray-700 rounded">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                      </svg>
+                    </button>
+                    <button class="p-1 text-gray-500 hover:text-gray-700 rounded">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+                      </svg>
+                    </button>
+                    <div class="h-5 border-l border-gray-300 mx-1"></div>
+                    <button class="p-1 text-gray-500 hover:text-gray-700 rounded">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M4 6h16M4 12h16M4 18h7" />
+                      </svg>
+                    </button>
+                    <button class="p-1 text-gray-500 hover:text-gray-700 rounded">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M4 6h16M4 12h16m-7 6h7" />
+                      </svg>
+                    </button>
+                  </div>
+                  <textarea id="message-content" rows="8" class="block w-full border-0 focus:ring-0 sm:text-sm"
+                    placeholder="请输入消息内容..."></textarea>
+                </div>
+              </div>
+              <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700 mb-1">预设模板</label>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div class="bento-card morandi-bg-beige p-4 cursor-pointer hover:shadow-md transition">
+                    <h4 class="font-medium text-gray-800 mb-1">考试通知模板</h4>
+                    <p class="text-xs text-gray-600 truncate">适用于期中/期末考试通知</p>
+                  </div>
+                  <div class="bento-card morandi-bg-pink p-4 cursor-pointer hover:shadow-md transition">
+                    <h4 class="font-medium text-gray-800 mb-1">活动邀请模板</h4>
+                    <p class="text-xs text-gray-600 truncate">适用于校园活动邀请</p>
+                  </div>
+                  <div class="bento-card morandi-bg-blue p-4 cursor-pointer hover:shadow-md transition">
+                    <h4 class="font-medium text-white mb-1">紧急通知模板</h4>
+                    <p class="text-xs text-white text-opacity-90 truncate">适用于紧急事件通知</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="flex justify-end space-x-4">
+              <button
+                class="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none">
+                保存为草稿
+              </button>
+              <button
+                class="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white morandi-bg-blue hover:bg-opacity-90 focus:outline-none">
+                提交审批
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 数据统计页面 -->
+        <div x-show="currentPage === 'stats'" class="page-container">
+          <div class="mb-6">
+            <h1 class="text-2xl font-bold morandi-text-dark">数据统计</h1>
+            <p class="text-gray-500">查看系统整体运行数据和统计分析</p>
+          </div>
+
+          <!-- 数据概览卡片 -->
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div class="bento-card bg-white p-6">
+              <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-semibold morandi-text-dark">总消息量</h3>
+                <div class="h-10 w-10 rounded-full morandi-bg-blue text-white flex items-center justify-center">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+                  </svg>
+                </div>
+              </div>
+              <div class="text-3xl font-bold mb-2 morandi-text-dark">1,248</div>
+              <p class="text-gray-500 text-sm">较上月 <span class="text-green-500">+12.5%</span></p>
+            </div>
+
+            <div class="bento-card bg-white p-6">
+              <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-semibold morandi-text-dark">总接收人次</h3>
+                <div class="h-10 w-10 rounded-full morandi-bg-pink text-white flex items-center justify-center">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                  </svg>
+                </div>
+              </div>
+              <div class="text-3xl font-bold mb-2 morandi-text-dark">45,672</div>
+              <p class="text-gray-500 text-sm">较上月 <span class="text-green-500">+8.3%</span></p>
+            </div>
+
+            <div class="bento-card bg-white p-6">
+              <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-semibold morandi-text-dark">平均阅读率</h3>
+                <div class="h-10 w-10 rounded-full morandi-bg-green text-white flex items-center justify-center">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                  </svg>
+                </div>
+              </div>
+              <div class="text-3xl font-bold mb-2 morandi-text-dark">92.7%</div>
+              <p class="text-gray-500 text-sm">较上月 <span class="text-green-500">+1.2%</span></p>
+            </div>
+
+            <div class="bento-card bg-white p-6">
+              <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-semibold morandi-text-dark">审批通过率</h3>
+                <div class="h-10 w-10 rounded-full morandi-bg-beige text-white flex items-center justify-center">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+              </div>
+              <div class="text-3xl font-bold mb-2 morandi-text-dark">86.4%</div>
+              <p class="text-gray-500 text-sm">较上月 <span class="text-red-500">-2.1%</span></p>
+            </div>
+          </div>
+
+          <!-- 趋势图表 -->
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            <div class="bento-card bg-white p-6">
+              <h3 class="text-lg font-semibold mb-4 morandi-text-dark">消息发送趋势</h3>
+              <div class="h-80 flex items-end space-x-2">
+                <!-- 模拟柱状图 -->
+                <div class="flex-1 flex items-end space-x-1">
+                  <div class="w-1/12 morandi-bg-blue rounded-t opacity-70" style="height: 30%"></div>
+                  <div class="w-1/12 morandi-bg-blue rounded-t opacity-70" style="height: 45%"></div>
+                  <div class="w-1/12 morandi-bg-blue rounded-t opacity-70" style="height: 60%"></div>
+                  <div class="w-1/12 morandi-bg-blue rounded-t opacity-70" style="height: 40%"></div>
+                  <div class="w-1/12 morandi-bg-blue rounded-t opacity-70" style="height: 55%"></div>
+                  <div class="w-1/12 morandi-bg-blue rounded-t opacity-70" style="height: 65%"></div>
+                  <div class="w-1/12 morandi-bg-blue rounded-t opacity-70" style="height: 50%"></div>
+                  <div class="w-1/12 morandi-bg-blue rounded-t opacity-70" style="height: 70%"></div>
+                  <div class="w-1/12 morandi-bg-blue rounded-t opacity-70" style="height: 80%"></div>
+                  <div class="w-1/12 morandi-bg-blue rounded-t opacity-70" style="height: 75%"></div>
+                  <div class="w-1/12 morandi-bg-blue rounded-t opacity-70" style="height: 90%"></div>
+                  <div class="w-1/12 morandi-bg-blue rounded-t" style="height: 85%"></div>
+                </div>
+              </div>
+              <div class="flex justify-between text-xs text-gray-500 mt-2">
+                <div>4月</div>
+                <div>5月</div>
+                <div>6月</div>
+                <div>7月</div>
+                <div>8月</div>
+                <div>9月</div>
+                <div>10月</div>
+                <div>11月</div>
+                <div>12月</div>
+                <div>1月</div>
+                <div>2月</div>
+                <div>3月</div>
+              </div>
+              <div class="mt-4 flex justify-between items-center">
+                <div class="text-sm text-gray-500">
+                  <span class="font-medium">年度总量:</span> 1,248 条消息
+                </div>
+                <div>
+                  <select class="text-sm border-gray-300 rounded-md">
+                    <option>过去12个月</option>
+                    <option>过去6个月</option>
+                    <option>过去3个月</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div class="bento-card bg-white p-6">
+              <h3 class="text-lg font-semibold mb-4 morandi-text-dark">阅读率分析</h3>
+              <div class="h-80 relative">
+                <!-- 模拟折线图 -->
+                <div class="absolute inset-0 flex flex-col justify-between">
+                  <div class="border-b border-gray-200 text-xs text-gray-400">100%</div>
+                  <div class="border-b border-gray-200 text-xs text-gray-400">80%</div>
+                  <div class="border-b border-gray-200 text-xs text-gray-400">60%</div>
+                  <div class="border-b border-gray-200 text-xs text-gray-400">40%</div>
+                  <div class="border-b border-gray-200 text-xs text-gray-400">20%</div>
+                  <div class="text-xs text-gray-400">0%</div>
+                </div>
+                <div class="absolute inset-0 pt-6">
+                  <!-- 折线图路径 - 使用背景渐变模拟 -->
+                  <div class="h-full relative">
+                    <div
+                      class="absolute top-[10%] left-0 right-0 h-[80%] bg-gradient-to-b from-blue-100 to-transparent rounded-md">
+                    </div>
+                    <svg class="absolute inset-0 h-full w-full" viewBox="0 0 100 100" preserveAspectRatio="none">
+                      <path
+                        d="M0,20 L8.33,15 L16.66,25 L25,20 L33.33,10 L41.66,15 L50,10 L58.33,5 L66.66,10 L75,15 L83.33,5 L91.66,10 L100,5"
+                        fill="none" stroke="#94a3b8" stroke-width="2" vector-effect="non-scaling-stroke" />
+                    </svg>
+                    <!-- 数据点 -->
+                    <div class="absolute top-[20%] left-0 h-2 w-2 rounded-full bg-blue-500"></div>
+                    <div class="absolute top-[15%] left-[8.33%] h-2 w-2 rounded-full bg-blue-500"></div>
+                    <div class="absolute top-[25%] left-[16.66%] h-2 w-2 rounded-full bg-blue-500"></div>
+                    <div class="absolute top-[20%] left-[25%] h-2 w-2 rounded-full bg-blue-500"></div>
+                    <div class="absolute top-[10%] left-[33.33%] h-2 w-2 rounded-full bg-blue-500"></div>
+                    <div class="absolute top-[15%] left-[41.66%] h-2 w-2 rounded-full bg-blue-500"></div>
+                    <div class="absolute top-[10%] left-[50%] h-2 w-2 rounded-full bg-blue-500"></div>
+                    <div class="absolute top-[5%] left-[58.33%] h-2 w-2 rounded-full bg-blue-500"></div>
+                    <div class="absolute top-[10%] left-[66.66%] h-2 w-2 rounded-full bg-blue-500"></div>
+                    <div class="absolute top-[15%] left-[75%] h-2 w-2 rounded-full bg-blue-500"></div>
+                    <div class="absolute top-[5%] left-[83.33%] h-2 w-2 rounded-full bg-blue-500"></div>
+                    <div class="absolute top-[10%] left-[91.66%] h-2 w-2 rounded-full bg-blue-500"></div>
+                    <div class="absolute top-[5%] left-[100%] h-2 w-2 rounded-full bg-blue-500"></div>
+                  </div>
+                </div>
+              </div>
+              <div class="flex justify-between text-xs text-gray-500 mt-2">
+                <div>4月</div>
+                <div>5月</div>
+                <div>6月</div>
+                <div>7月</div>
+                <div>8月</div>
+                <div>9月</div>
+                <div>10月</div>
+                <div>11月</div>
+                <div>12月</div>
+                <div>1月</div>
+                <div>2月</div>
+                <div>3月</div>
+              </div>
+              <div class="mt-4 flex justify-between items-center">
+                <div class="text-sm text-gray-500">
+                  <span class="font-medium">平均阅读率:</span> 92.7%
+                </div>
+                <div>
+                  <select class="text-sm border-gray-300 rounded-md">
+                    <option>过去12个月</option>
+                    <option>过去6个月</option>
+                    <option>过去3个月</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 详细数据分析 -->
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div class="bento-card bg-white p-6">
+              <h3 class="text-lg font-semibold mb-4 morandi-text-dark">消息类型分布</h3>
+              <div class="relative h-64 flex items-center justify-center">
+                <!-- 模拟饼图 -->
+                <div class="relative h-48 w-48 rounded-full overflow-hidden">
+                  <div class="absolute inset-0 morandi-bg-blue"
+                    style="clip-path: polygon(50% 50%, 50% 0%, 100% 0%, 100% 100%, 50% 100%)"></div>
+                  <div class="absolute inset-0 morandi-bg-pink" style="clip-path: polygon(50% 50%, 100% 100%, 0% 100%)">
+                  </div>
+                  <div class="absolute inset-0 morandi-bg-green"
+                    style="clip-path: polygon(50% 50%, 0% 100%, 0% 0%, 50% 0%)"></div>
+                  <div class="absolute inset-0 bg-white rounded-full scale-[0.4]"></div>
+                </div>
+              </div>
+              <div class="grid grid-cols-2 gap-2 mt-4">
+                <div class="flex items-center">
+                  <div class="h-3 w-3 morandi-bg-blue rounded-sm mr-2"></div>
+                  <span class="text-sm text-gray-600">通知 (40%)</span>
+                </div>
+                <div class="flex items-center">
+                  <div class="h-3 w-3 morandi-bg-pink rounded-sm mr-2"></div>
+                  <span class="text-sm text-gray-600">提醒 (30%)</span>
+                </div>
+                <div class="flex items-center">
+                  <div class="h-3 w-3 morandi-bg-green rounded-sm mr-2"></div>
+                  <span class="text-sm text-gray-600">活动 (30%)</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="bento-card bg-white p-6">
+              <h3 class="text-lg font-semibold mb-4 morandi-text-dark">学院分布</h3>
+              <div class="space-y-4">
+                <div>
+                  <div class="flex justify-between items-center mb-1">
+                    <span class="text-sm text-gray-600">计算机学院</span>
+                    <span class="text-sm font-medium text-gray-900">28%</span>
+                  </div>
+                  <div class="w-full bg-gray-200 rounded-full h-2">
+                    <div class="morandi-bg-blue h-2 rounded-full" style="width: 28%"></div>
+                  </div>
+                </div>
+                <div>
+                  <div class="flex justify-between items-center mb-1">
+                    <span class="text-sm text-gray-600">机械工程学院</span>
+                    <span class="text-sm font-medium text-gray-900">22%</span>
+                  </div>
+                  <div class="w-full bg-gray-200 rounded-full h-2">
+                    <div class="morandi-bg-blue h-2 rounded-full" style="width: 22%"></div>
+                  </div>
+                </div>
+                <div>
+                  <div class="flex justify-between items-center mb-1">
+                    <span class="text-sm text-gray-600">电子信息学院</span>
+                    <span class="text-sm font-medium text-gray-900">18%</span>
+                  </div>
+                  <div class="w-full bg-gray-200 rounded-full h-2">
+                    <div class="morandi-bg-blue h-2 rounded-full" style="width: 18%"></div>
+                  </div>
+                </div>
+                <div>
+                  <div class="flex justify-between items-center mb-1">
+                    <span class="text-sm text-gray-600">经济管理学院</span>
+                    <span class="text-sm font-medium text-gray-900">15%</span>
+                  </div>
+                  <div class="w-full bg-gray-200 rounded-full h-2">
+                    <div class="morandi-bg-blue h-2 rounded-full" style="width: 15%"></div>
+                  </div>
+                </div>
+                <div>
+                  <div class="flex justify-between items-center mb-1">
+                    <span class="text-sm text-gray-600">其他学院</span>
+                    <span class="text-sm font-medium text-gray-900">17%</span>
+                  </div>
+                  <div class="w-full bg-gray-200 rounded-full h-2">
+                    <div class="morandi-bg-blue h-2 rounded-full" style="width: 17%"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="bento-card bg-white p-6">
+              <h3 class="text-lg font-semibold mb-4 morandi-text-dark">活跃用户</h3>
+              <div class="space-y-4">
+                <div class="flex items-center">
+                  <div class="flex-shrink-0">
+                    <div class="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-500" viewBox="0 0 20 20"
+                        fill="currentColor">
+                        <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"
+                          clip-rule="evenodd" />
+                      </svg>
+                    </div>
+                  </div>
+                  <div class="ml-3 flex-1">
+                    <div class="flex items-center justify-between">
+                      <p class="text-sm font-medium text-gray-900">张老师</p>
+                      <p class="text-sm text-gray-500">计算机学院</p>
+                    </div>
+                    <div class="flex items-center">
+                      <div class="text-xs text-gray-500">发送消息: 45</div>
+                      <div class="mx-2 h-1 w-1 rounded-full bg-gray-300"></div>
+                      <div class="text-xs text-gray-500">阅读率: 96%</div>
+                    </div>
+                  </div>
+                </div>
+                <div class="flex items-center">
+                  <div class="flex-shrink-0">
+                    <div class="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-500" viewBox="0 0 20 20"
+                        fill="currentColor">
+                        <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"
+                          clip-rule="evenodd" />
+                      </svg>
+                    </div>
+                  </div>
+                  <div class="ml-3 flex-1">
+                    <div class="flex items-center justify-between">
+                      <p class="text-sm font-medium text-gray-900">李老师</p>
+                      <p class="text-sm text-gray-500">机械工程学院</p>
+                    </div>
+                    <div class="flex items-center">
+                      <div class="text-xs text-gray-500">发送消息: 38</div>
+                      <div class="mx-2 h-1 w-1 rounded-full bg-gray-300"></div>
+                      <div class="text-xs text-gray-500">阅读率: 94%</div>
+                    </div>
+                  </div>
+                </div>
+                <div class="flex items-center">
+                  <div class="flex-shrink-0">
+                    <div class="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-500" viewBox="0 0 20 20"
+                        fill="currentColor">
+                        <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"
+                          clip-rule="evenodd" />
+                      </svg>
+                    </div>
+                  </div>
+                  <div class="ml-3 flex-1">
+                    <div class="flex items-center justify-between">
+                      <p class="text-sm font-medium text-gray-900">王老师</p>
+                      <p class="text-sm text-gray-500">电子信息学院</p>
+                    </div>
+                    <div class="flex items-center">
+                      <div class="text-xs text-gray-500">发送消息: 32</div>
+                      <div class="mx-2 h-1 w-1 rounded-full bg-gray-300"></div>
+                      <div class="text-xs text-gray-500">阅读率: 91%</div>
+                    </div>
+                  </div>
+                </div>
+                <div class="flex items-center">
+                  <div class="flex-shrink-0">
+                    <div class="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-500" viewBox="0 0 20 20"
+                        fill="currentColor">
+                        <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"
+                          clip-rule="evenodd" />
+                      </svg>
+                    </div>
+                  </div>
+                  <div class="ml-3 flex-1">
+                    <div class="flex items-center justify-between">
+                      <p class="text-sm font-medium text-gray-900">陈老师</p>
+                      <p class="text-sm text-gray-500">经济管理学院</p>
+                    </div>
+                    <div class="flex items-center">
+                      <div class="text-xs text-gray-500">发送消息: 28</div>
+                      <div class="mx-2 h-1 w-1 rounded-full bg-gray-300"></div>
+                      <div class="text-xs text-gray-500">阅读率: 89%</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="mt-4 text-right">
+                <a href="#" class="text-sm font-medium text-blue-600 hover:text-blue-500">查看所有用户 →</a>
+              </div>
+            </div>
+          </div>
+
+          <!-- 导出数据按钮 -->
+          <div class="mt-8 flex justify-end">
+            <button
+              class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white morandi-bg-blue hover:bg-opacity-90 focus:outline-none">
+              <svg class="-ml-1 mr-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+              </svg>
+              导出数据报表
+            </button>
+          </div>
+
+        </div>
+
+      </main>
+    </div>
+  </div>
+</body>
+
+</html>

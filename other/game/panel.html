@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>飞机大战</title>
+    <!-- 引入 Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        canvas {
+            border: 1px solid black;
+            background: #87CEEB;
+        }
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="gameCanvas" width="480" height="640"></canvas>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // 玩家飞机
+        const player = {
+            x: canvas.width / 2,
+            y: canvas.height - 50,
+            size: 40,
+            speed: 5
+        };
+
+        // 子弹数组
+        let bullets = [];
+        // 敌机数组
+        let enemies = [];
+        let score = 0;
+
+        // 控制
+        let rightPressed = false;
+        let leftPressed = false;
+        let upPressed = false;
+        let downPressed = false;
+        let spacePressed = false;
+
+        // 监听键盘事件
+        document.addEventListener('keydown', keyDownHandler);
+        document.addEventListener('keyup', keyUpHandler);
+
+        function keyDownHandler(e) {
+            if (e.key === 'Right' || e.key === 'ArrowRight') rightPressed = true;
+            if (e.key === 'Left' || e.key === 'ArrowLeft') leftPressed = true;
+            if (e.key === 'Up' || e.key === 'ArrowUp') upPressed = true;
+            if (e.key === 'Down' || e.key === 'ArrowDown') downPressed = true;
+            if (e.key === ' ') spacePressed = true;
+        }
+
+        function keyUpHandler(e) {
+            if (e.key === 'Right' || e.key === 'ArrowRight') rightPressed = false;
+            if (e.key === 'Left' || e.key === 'ArrowLeft') leftPressed = false;
+            if (e.key === 'Up' || e.key === 'ArrowUp') upPressed = false;
+            if (e.key === 'Down' || e.key === 'ArrowDown') downPressed = false;
+            if (e.key === ' ') spacePressed = false;
+        }
+
+        // 绘制玩家飞机
+        function drawPlayer() {
+            ctx.font = `${player.size}px "Font Awesome 6 Free"`;
+            ctx.fillStyle = 'blue';
+            ctx.textAlign = 'center';
+            ctx.fillText('\uf072', player.x, player.y); // fa-plane
+        }
+
+        // 子弹对象
+        class Bullet {
+            constructor(x, y) {
+                this.x = x;
+                this.y = y;
+                this.size = 20;
+                this.speed = 7;
+            }
+
+            draw() {
+                ctx.font = `${this.size}px "Font Awesome 6 Free"`;
+                ctx.fillStyle = 'red';
+                ctx.textAlign = 'center';
+                ctx.fillText('\uf0c8', this.x, this.y); // fa-square
+            }
+
+            update() {
+                this.y -= this.speed;
+            }
+        }
+
+        // 敌机对象
+        class Enemy {
+            constructor() {
+                this.x = Math.random() * (canvas.width - 40);
+                this.y = -40;
+                this.size = 40;
+                this.speed = 3;
+            }
+
+            draw() {
+                ctx.font = `${this.size}px "Font Awesome 6 Free"`;
+                ctx.fillStyle = 'green';
+                ctx.textAlign = 'center';
+                ctx.fillText('\uf0fb', this.x, this.y); // fa-fighter-jet
+            }
+
+            update() {
+                this.y += this.speed;
+            }
+        }
+
+        // 主游戏循环
+        function gameLoop() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // 移动玩家
+            if (rightPressed && player.x < canvas.width - player.size) player.x += player.speed;
+           _cv = if (leftPressed && player.x > player.size / 2) player.x -= player.speed;
+            if (upPressed && player.y > player.size) player.y -= player.speed;
+            if (downPressed && player.y < canvas.height - player.size / 2) player.y += player.speed;
+
+            // 发射子弹
+            if (spacePressed && bullets.length < 10) {
+                bullets.push(new Bullet(player.x, player.y - player.size / 2));
+                spacePressed = false;
+            }
+
+            // 生成敌机
+            if (Math.random() < 0.02) {
+                enemies.push(new Enemy());
+            }
+
+            // 更新和绘制子弹
+            bullets.forEach((bullet, bIndex) => {
+                bullet.update();
+                bullet.draw();
+                if (bullet.y < 0) bullets.splice(bIndex, 1);
+            });
+
+            // 更新和绘制敌机
+            enemies.forEach((enemy, eIndex) => {
+                enemy.update();
+                enemy.draw();
+
+                // 碰撞检测
+                bullets.forEach((bullet, bIndex) => {
+                    if (Math.abs(bullet.x - enemy.x) < enemy.size / 2 &&
+                        Math.abs(bullet.y - enemy.y) < enemy.size / 2) {
+                        enemies.splice(eIndex, 1);
+                        bullets.splice(bIndex, 1);
+                        score += 10;
+                    }
+                });
+
+                // 玩家碰撞检测
+                if (Math.abs(player.x - enemy.x) < player.size / 2 &&
+                    Math.abs(player.y - enemy.y) < player.size / 2) {
+                    alert(`游戏结束！得分: ${score}`);
+                    resetGame();
+                }
+
+                if (enemy.y > canvas.height) enemies.splice(eIndex, 1);
+            });
+
+            drawPlayer();
+
+            // 显示分数
+            ctx.fillStyle = 'black';
+            ctx.font = '20px Arial';
+            ctx.fillText(`得分: ${score}`, 10, 30);
+
+            requestAnimationFrame(gameLoop);
+        }
+
+        function resetGame() {
+            bullets = [];
+            enemies = [];
+            score = 0;
+            player.x = canvas.width / 2;
+            player.y = canvas.height - 50;
+        }
+
+        gameLoop();
+    </script>
+</body>
+</html>
