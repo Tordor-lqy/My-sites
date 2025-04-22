@@ -1,0 +1,1306 @@
+<!DOCTYPE html>
+<html lang="zh" data-theme="light">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>广告设计器</title>
+    <link href="./daisyui.css" rel="stylesheet" />
+    <script src="./tailwindcss.js"></script>
+    <!-- jsPDF Library -->
+    <script src="./jspdf.js"></script>
+    <!-- html2canvas Library -->
+    <script src="./html2canvas.js"></script>
+
+    <style>
+      #canvas {
+        overflow: hidden;
+        cursor: default;
+        user-select: none;
+      }
+      .design-element {
+        position: absolute;
+        cursor: grab;
+        user-select: none;
+        border: 1px dashed transparent;
+        overflow: hidden; /* Crucial for contained text */
+        background-color: transparent;
+        white-space: pre-wrap; /* Allow wrapping within element */
+        word-break: break-word; /* Break long words */
+        /* Default alignment, override where needed */
+        /* display: block; <-- REMOVED, now handled by addStandardTextElement */
+      }
+      .design-element.text-element {
+        padding: 2px 5px; /* Padding inside the text box */
+        box-sizing: border-box; /* Include padding in width/height */
+        /* Default text settings, can be overridden */
+      }
+      .design-element.image-element img {
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        user-select: none;
+        -webkit-user-drag: none;
+      }
+      .design-element.selected {
+        border-color: blue;
+        border-style: solid;
+        z-index: 999;
+      }
+      .design-element:focus-within {
+        border-color: green;
+        outline: none;
+      }
+      .design-element[contenteditable="true"] {
+        cursor: text; /* Change cursor for editing */
+        user-select: auto;
+        white-space: pre-wrap;
+      }
+      .dragging {
+        cursor: grabbing;
+        opacity: 0.8;
+        z-index: 1000;
+      }
+      /* Resize Handles */
+      .resizer {
+        position: absolute;
+        width: 10px;
+        height: 10px;
+        background-color: white;
+        border: 1px solid blue;
+        border-radius: 50%;
+        z-index: 1001;
+        display: none;
+      }
+      .design-element.selected .resizer {
+        display: block;
+      }
+      .resizer[data-direction="tl"] {
+        top: -5px;
+        left: -5px;
+        cursor: nwse-resize;
+      }
+      .resizer[data-direction="tc"] {
+        top: -5px;
+        left: calc(50% - 5px);
+        cursor: ns-resize;
+      }
+      .resizer[data-direction="tr"] {
+        top: -5px;
+        right: -5px;
+        cursor: nesw-resize;
+      }
+      .resizer[data-direction="ml"] {
+        top: calc(50% - 5px);
+        left: -5px;
+        cursor: ew-resize;
+      }
+      .resizer[data-direction="mr"] {
+        top: calc(50% - 5px);
+        right: -5px;
+        cursor: ew-resize;
+      }
+      .resizer[data-direction="bl"] {
+        bottom: -5px;
+        left: -5px;
+        cursor: nesw-resize;
+      }
+      .resizer[data-direction="bc"] {
+        bottom: -5px;
+        left: calc(50% - 5px);
+        cursor: ns-resize;
+      }
+      .resizer[data-direction="br"] {
+        bottom: -5px;
+        right: -5px;
+        cursor: nwse-resize;
+      }
+      /* Properties Panel */
+      #properties-panel {
+        display: none;
+      }
+      #properties-panel.active {
+        display: block;
+      }
+      #text-properties {
+        display: none;
+      }
+      #image-properties {
+        display: none;
+      }
+    </style>
+  </head>
+
+  <body class="bg-base-100 text-base-content">
+    <div class="flex h-screen">
+      <!-- Left Sidebar -->
+      <aside class="w-48 bg-base-200 p-4 flex flex-col gap-4">
+        <div>
+          <h2 class="text-lg font-bold mb-2">元素</h2>
+          <div class="flex flex-col gap-2">
+            <button id="add-text-btn" class="btn btn-outline">
+              添加单行文本
+            </button>
+            <button id="add-multiline-text-btn" class="btn btn-outline">
+              添加多行文本
+            </button>
+            <button id="add-image-btn" class="btn btn-outline">添加图片</button>
+            <input
+              type="file"
+              id="image-upload-input"
+              accept="image/*"
+              style="display: none"
+            />
+          </div>
+        </div>
+      </aside>
+
+      <!-- Main Area -->
+      <main class="flex-1 flex flex-col">
+        <!-- Top Bar -->
+        <div class="p-4 flex gap-2 border-b border-base-300">
+          <button id="export-pdf-btn" class="btn btn-sm btn-info">
+            导出 PDF
+          </button>
+          <div class="form-control">
+            <label class="label"
+              ><span class="label-text">画布底色</span></label
+            >
+            <input
+              id="canvas-bg-color"
+              type="color"
+              class="input input-bordered input-sm w-20"
+              value="#DC2626"
+            />
+          </div>
+          <!-- NEW: Canvas Size Controls -->
+          <div class="form-control">
+            <label class="label py-0"
+              ><span class="label-text text-xs">宽度 (px)</span></label
+            >
+            <input
+              id="canvas-width-input"
+              type="number"
+              min="100"
+              value="800"
+              class="input input-bordered input-sm w-24"
+            />
+          </div>
+          <div class="form-control">
+            <label class="label py-0"
+              ><span class="label-text text-xs">高度 (px)</span></label
+            >
+            <input
+              id="canvas-height-input"
+              type="number"
+              min="100"
+              value="600"
+              class="input input-bordered input-sm w-24"
+            />
+          </div>
+        </div>
+        <!-- Canvas Area -->
+        <div class="flex-1 flex justify-center items-center bg-neutral-100 p-4">
+          <div
+            id="canvas"
+            class="relative w-[800px] h-[600px] bg-red-600"
+          ></div>
+        </div>
+      </main>
+
+      <!-- Right Properties Panel -->
+      <aside id="properties-panel" class="w-72 bg-base-200 p-4 overflow-y-auto">
+        <div class="flex justify-between items-center mb-4">
+          <h2 id="prop-title" class="text-lg font-bold">属性</h2>
+          <button id="prop-delete-btn" class="btn btn-xs btn-error">
+            删除
+          </button>
+        </div>
+        <div class="text-sm mb-2">
+          <p id="prop-pos">位置: X: 0px, Y: 0px</p>
+          <p id="prop-size">尺寸: 0x0px</p>
+        </div>
+        <div class="form-control mb-2">
+          <label class="label"
+            ><span class="label-text">元素背景色</span></label
+          >
+          <input
+            id="prop-bg-color"
+            type="color"
+            class="input input-bordered input-sm w-full"
+            value="#ffffff"
+          />
+          <span class="text-xs text-gray-500 mt-1"
+            >(仅对透明图片或文本元素有效)</span
+          >
+        </div>
+        <div id="text-properties" class="mt-4 border-t border-base-300 pt-4">
+          <h3 class="font-semibold mb-2">文本设置</h3>
+          <div class="form-control mb-2">
+            <label class="label"
+              ><span class="label-text">文字内容</span></label
+            >
+            <textarea
+              id="prop-text-content"
+              class="textarea textarea-bordered h-20 text-sm"
+            ></textarea>
+          </div>
+          <div class="form-control mb-2">
+            <label class="label"
+              ><span class="label-text">文字对齐</span></label
+            >
+            <select
+              id="prop-text-align"
+              class="select select-bordered select-sm w-full"
+            >
+              <option value="left">左对齐</option>
+              <option value="center">居中</option>
+              <option value="right">右对齐</option>
+              <option value="justify">两端对齐</option>
+            </select>
+          </div>
+          <div class="form-control mb-2">
+            <label class="label"
+              ><span class="label-text">文字颜色</span></label
+            >
+            <input
+              id="prop-text-color"
+              type="color"
+              class="input input-bordered input-sm w-full"
+              value="#FFFF00"
+            />
+          </div>
+          <div class="form-control mb-2">
+            <label class="label"
+              ><span class="label-text">字体大小 (px)</span></label
+            >
+            <div class="flex items-center gap-2">
+              <input
+                id="prop-font-size-range"
+                type="range"
+                min="10"
+                max="200"
+                value="60"
+                class="range range-sm flex-1"
+              />
+              <input
+                id="prop-font-size-input"
+                type="number"
+                min="10"
+                max="200"
+                value="60"
+                class="input input-bordered input-sm w-20"
+              />
+            </div>
+          </div>
+        </div>
+        <div id="image-properties" class="mt-4 border-t border-base-300 pt-4">
+          <h3 class="font-semibold mb-2">图片设置</h3>
+          <p class="text-sm text-gray-500">(暂无特定图片设置)</p>
+        </div>
+      </aside>
+    </div>
+
+    <!-- DaisyUI Modal -->
+    <dialog id="multiline_input_modal" class="modal">
+      <div class="modal-box">
+        <h3 class="font-bold text-lg">输入多行文本</h3>
+        <p class="py-4">
+          每行将生成一个独立的文本元素，自动垂直平铺并调整字体大小以适应画布。
+        </p>
+        <textarea
+          id="multiline_input_textarea"
+          class="textarea textarea-bordered w-full h-40"
+          placeholder="在此输入文本，用换行分隔..."
+        ></textarea>
+        <div class="modal-action">
+          <form method="dialog">
+            <button class="btn btn-sm btn-ghost" id="modal_cancel_btn">
+              取消
+            </button>
+            <button class="btn btn-sm btn-primary" id="modal_confirm_btn">
+              确定
+            </button>
+          </form>
+        </div>
+      </div>
+      <form method="dialog" class="modal-backdrop"><button>close</button></form>
+    </dialog>
+
+    <script>
+      const { jsPDF } = window.jspdf;
+
+      // DOM Elements
+      const canvas = document.getElementById("canvas");
+      const addTextButton = document.getElementById("add-text-btn");
+      const addMultilineTextButton = document.getElementById(
+        "add-multiline-text-btn"
+      );
+      const addImageButton = document.getElementById("add-image-btn");
+      const imageUploadInput = document.getElementById("image-upload-input");
+      const exportPdfButton = document.getElementById("export-pdf-btn");
+      const canvasBgColor = document.getElementById("canvas-bg-color");
+      const propertiesPanel = document.getElementById("properties-panel");
+      const propTitle = document.getElementById("prop-title");
+      const propDeleteBtn = document.getElementById("prop-delete-btn");
+      const propPos = document.getElementById("prop-pos");
+      const propSize = document.getElementById("prop-size");
+      const propBgColor = document.getElementById("prop-bg-color");
+      const textSpecificProps = document.getElementById("text-properties");
+      const propTextContent = document.getElementById("prop-text-content");
+      const propTextAlign = document.getElementById("prop-text-align");
+      const propTextColor = document.getElementById("prop-text-color");
+      const propFontSizeRange = document.getElementById("prop-font-size-range");
+      const propFontSizeInput = document.getElementById("prop-font-size-input");
+      const imageSpecificProps = document.getElementById("image-properties");
+      const multilineModal = document.getElementById("multiline_input_modal");
+      const multilineTextarea = document.getElementById(
+        "multiline_input_textarea"
+      );
+      const modalConfirmBtn = document.getElementById("modal_confirm_btn");
+      // NEW: Canvas size inputs
+      const canvasWidthInput = document.getElementById("canvas-width-input");
+      const canvasHeightInput = document.getElementById("canvas-height-input");
+
+      // State Variables
+      let selectedElement = null;
+      let draggedElement = null;
+      let resizingElement = null;
+      let dragOffsetX, dragOffsetY;
+      let elementCounter = 0;
+      const MAX_FONT_SIZE = 220; // Maximum allowed font size
+      const MIN_FONT_SIZE = 10; // Minimum allowed font size
+      const MIN_ELEMENT_WIDTH = 20;
+      const MIN_ELEMENT_HEIGHT = 20; // Minimum height for any element, including text slots
+      const DEFAULT_FONT_SIZE = 60; // For single text element button
+      const FONT_SIZE_HEIGHT_RATIO = 0.95; // Heuristic: Font size relative to element height for auto-sizing
+
+      // Resize State
+      let resizeDirection = null;
+      let initialResizeState = {};
+      // --- Canvas Size Logic ---
+      function updateCanvasSize() {
+        const newWidth = Math.max(
+          100,
+          parseInt(canvasWidthInput.value, 10) || 800
+        ); // Min width 100
+        const newHeight = Math.max(
+          100,
+          parseInt(canvasHeightInput.value, 10) || 600
+        ); // Min height 100
+        canvas.style.width = `${newWidth}px`;
+        canvas.style.height = `${newHeight}px`;
+        canvasWidthInput.value = newWidth; // Update input if value was invalid/corrected
+        canvasHeightInput.value = newHeight;
+
+        // Optional: Check if elements are outside the new bounds and adjust?
+        // For simplicity, we won't auto-adjust existing elements for now.
+      }
+      // Initial canvas setup
+      function initializeCanvas() {
+        canvas.style.backgroundColor = canvasBgColor.value;
+        updateCanvasSize(); // Set initial size from inputs
+      }
+
+      canvasWidthInput.addEventListener("change", updateCanvasSize);
+      canvasHeightInput.addEventListener("change", updateCanvasSize);
+
+      // --- Selection Logic ---
+      function selectElement(element) {
+        // (Unchanged from your provided code)
+        if (selectedElement && selectedElement !== element) {
+          selectedElement.classList.remove("selected");
+          if (selectedElement.dataset.type === "text") {
+            selectedElement.contentEditable = false;
+            // Reapply flex centering if it was a multi-line element that wasn't manually resized/edited much
+            if (
+              selectedElement.dataset.multiline === "true" &&
+              selectedElement.style.display === "block"
+            ) {
+              // Only re-apply if it was likely one of the auto-generated ones
+              // Check if height is still close to calculated slot height if needed for more precision
+              // For simplicity, let's assume if it was multi-line, we want centering back on deselect
+              // selectedElement.style.display = "flex";
+              // selectedElement.style.alignItems = "center";
+              // selectedElement.style.justifyContent = "center"; // Adjust based on text align
+            }
+          }
+        }
+        selectedElement = element;
+        if (selectedElement) {
+          selectedElement.classList.add("selected");
+          if (selectedElement.dataset.type === "text") {
+            // Only make editable on select, not double-click needed initially
+            selectedElement.contentEditable = true;
+          }
+          canvas.appendChild(selectedElement); // Bring to front
+          updatePropertiesPanel(selectedElement);
+          propertiesPanel.classList.add("active");
+        } else {
+          propertiesPanel.classList.remove("active");
+        }
+      }
+      canvas.addEventListener("click", (e) => {
+        if (e.target === canvas) {
+          selectElement(null); // Deselect if clicking canvas background
+        }
+        // Click on element is handled by element's own listener now
+      });
+      canvas.addEventListener("dblclick", (e) => {
+        let targetElement = e.target.closest(".design-element");
+        if (targetElement && targetElement.dataset.type === "text") {
+          e.stopPropagation(); // Prevent canvas click
+          selectElement(targetElement);
+          targetElement.focus(); // Focus for editing
+          // Select all text within
+          const range = document.createRange();
+          range.selectNodeContents(targetElement);
+          const sel = window.getSelection();
+          sel.removeAllRanges();
+          sel.addRange(range);
+        }
+      });
+
+      // --- Dragging Logic ---
+      function onMouseDown(e) {
+        // (Unchanged from your provided code)
+        let targetElement = e.target.closest(".design-element");
+        if (
+          targetElement &&
+          !e.target.classList.contains("resizer") &&
+          e.button === 0
+        ) {
+          // Prevent dragging if currently editing text (caret is active)
+          if (
+            targetElement.dataset.type === "text" &&
+            document.activeElement === targetElement &&
+            targetElement.isContentEditable
+          ) {
+            return;
+          }
+          selectElement(targetElement); // Select on drag start
+          draggedElement = selectedElement;
+          draggedElement.classList.add("dragging");
+          const canvasRect = canvas.getBoundingClientRect();
+          dragOffsetX = e.clientX - canvasRect.left - draggedElement.offsetLeft;
+          dragOffsetY = e.clientY - canvasRect.top - draggedElement.offsetTop;
+          e.preventDefault(); // Prevent text selection during drag
+          document.addEventListener("mousemove", onMouseMove);
+          document.addEventListener("mouseup", onMouseUp);
+        }
+      }
+      function onMouseMove(e) {
+        // (Unchanged from your provided code)
+        if (draggedElement) {
+          const canvasRect = canvas.getBoundingClientRect();
+          let newX = e.clientX - canvasRect.left - dragOffsetX;
+          let newY = e.clientY - canvasRect.top - dragOffsetY;
+          const elementWidth = draggedElement.offsetWidth;
+          const elementHeight = draggedElement.offsetHeight;
+          // Keep element within canvas bounds
+          newX = Math.max(0, Math.min(newX, canvasRect.width - elementWidth));
+          newY = Math.max(0, Math.min(newY, canvasRect.height - elementHeight));
+          draggedElement.style.left = `${newX}px`;
+          draggedElement.style.top = `${newY}px`;
+          updatePropertiesPanel(draggedElement); // Update position in panel
+        } else if (resizingElement) {
+          onResizeMove(e); // Handle resizing drag
+        }
+      }
+      function onMouseUp(e) {
+        // (Unchanged from your provided code)
+        if (draggedElement && e.button === 0) {
+          draggedElement.classList.remove("dragging");
+          draggedElement = null;
+          document.removeEventListener("mousemove", onMouseMove);
+          document.removeEventListener("mouseup", onMouseUp);
+        } else if (resizingElement && e.button === 0) {
+          onResizeEnd(e); // Finalize resize
+        }
+      }
+
+      // --- Resizing Logic ---
+      function onResizeStart(e) {
+        // (Unchanged from your provided code)
+        if (e.target.classList.contains("resizer") && e.button === 0) {
+          resizingElement = e.target.closest(".design-element");
+          if (!resizingElement) return;
+
+          e.stopPropagation(); // Prevent triggering element drag
+          e.preventDefault(); // Prevent default actions
+
+          selectElement(resizingElement); // Ensure the element is selected
+          resizeDirection = e.target.dataset.direction;
+          const styles = window.getComputedStyle(resizingElement);
+          initialResizeState = {
+            x: e.clientX,
+            y: e.clientY,
+            left: resizingElement.offsetLeft,
+            top: resizingElement.offsetTop,
+            width: parseFloat(styles.width), // Use computed style for accuracy
+            height: parseFloat(styles.height),
+            aspectRatio:
+              resizingElement.dataset.type === "image"
+                ? parseFloat(styles.width) / parseFloat(styles.height)
+                : null,
+          };
+
+          // If text element, temporarily remove flex centering during resize
+          if (resizingElement.dataset.type === "text") {
+            resizingElement.style.display = "block";
+            resizingElement.style.alignItems = "";
+            resizingElement.style.justifyContent = "";
+          }
+
+          resizingElement.classList.add("dragging"); // Use dragging style for visual feedback
+          document.addEventListener("mousemove", onMouseMove);
+          document.addEventListener("mouseup", onMouseUp);
+        }
+      }
+      function onResizeMove(e) {
+        // (Unchanged from your provided code, but added comments/minor boundary checks)
+        if (!resizingElement || !resizeDirection) return;
+
+        const dx = e.clientX - initialResizeState.x;
+        const dy = e.clientY - initialResizeState.y;
+
+        let newWidth = initialResizeState.width;
+        let newHeight = initialResizeState.height;
+        let newLeft = initialResizeState.left;
+        let newTop = initialResizeState.top;
+
+        const canvasRect = canvas.getBoundingClientRect();
+        const maxW = canvasRect.width;
+        const maxH = canvasRect.height;
+
+        // Calculate new dimensions based on drag direction
+        if (resizeDirection.includes("r"))
+          newWidth = initialResizeState.width + dx;
+        if (resizeDirection.includes("l")) {
+          newWidth = initialResizeState.width - dx;
+          newLeft = initialResizeState.left + dx;
+        }
+        if (resizeDirection.includes("b"))
+          newHeight = initialResizeState.height + dy;
+        if (resizeDirection.includes("t")) {
+          newHeight = initialResizeState.height - dy;
+          newTop = initialResizeState.top + dy;
+        }
+
+        // --- Aspect Ratio Lock for Images (Optional but good) ---
+        // if (resizingElement.dataset.type === 'image' && initialResizeState.aspectRatio) {
+        //    // Basic aspect ratio lock (adjust one dimension based on the other)
+        //    // This is a simplification, diagonal resizing needs more complex logic for perfect lock
+        //    if (resizeDirection.includes('r') || resizeDirection.includes('l')) {
+        //        newHeight = newWidth / initialResizeState.aspectRatio;
+        //        if (resizeDirection.includes('t')) { // Adjust top if height changed from top handle
+        //           newTop = initialResizeState.top + (initialResizeState.height - newHeight);
+        //        }
+        //    } else if (resizeDirection.includes('b') || resizeDirection.includes('t')) {
+        //        newWidth = newHeight * initialResizeState.aspectRatio;
+        //         if (resizeDirection.includes('l')) { // Adjust left if width changed from left handle
+        //            newLeft = initialResizeState.left + (initialResizeState.width - newWidth);
+        //        }
+        //    }
+        // }
+
+        // --- Apply Minimum Size Constraints ---
+        if (newWidth < MIN_ELEMENT_WIDTH) {
+          newWidth = MIN_ELEMENT_WIDTH;
+          if (resizeDirection.includes("l"))
+            newLeft =
+              initialResizeState.left +
+              (initialResizeState.width - MIN_ELEMENT_WIDTH);
+        }
+        if (newHeight < MIN_ELEMENT_HEIGHT) {
+          newHeight = MIN_ELEMENT_HEIGHT;
+          if (resizeDirection.includes("t"))
+            newTop =
+              initialResizeState.top +
+              (initialResizeState.height - MIN_ELEMENT_HEIGHT);
+        }
+
+        // --- Apply Canvas Boundary Constraints ---
+        // Left boundary
+        if (newLeft < 0) {
+          if (resizeDirection.includes("l"))
+            newWidth = initialResizeState.left + initialResizeState.width; // Width adjusts if dragging left past boundary
+          newLeft = 0;
+        }
+        // Top boundary
+        if (newTop < 0) {
+          if (resizeDirection.includes("t"))
+            newHeight = initialResizeState.top + initialResizeState.height; // Height adjusts if dragging top past boundary
+          newTop = 0;
+        }
+        // Right boundary
+        if (newLeft + newWidth > maxW) {
+          newWidth = maxW - newLeft;
+          if (newWidth < MIN_ELEMENT_WIDTH) {
+            // Prevent getting stuck if squeezed too small
+            newWidth = MIN_ELEMENT_WIDTH;
+            // Adjust left only if we weren't dragging from the left handle
+            if (!resizeDirection.includes("l"))
+              newLeft = maxW - MIN_ELEMENT_WIDTH;
+          }
+        }
+        // Bottom boundary
+        if (newTop + newHeight > maxH) {
+          newHeight = maxH - newTop;
+          if (newHeight < MIN_ELEMENT_HEIGHT) {
+            // Prevent getting stuck
+            newHeight = MIN_ELEMENT_HEIGHT;
+            // Adjust top only if we weren't dragging from the top handle
+            if (!resizeDirection.includes("t"))
+              newTop = maxH - MIN_ELEMENT_HEIGHT;
+          }
+        }
+
+        // Apply the calculated styles
+        resizingElement.style.width = `${newWidth}px`;
+        resizingElement.style.height = `${newHeight}px`;
+        resizingElement.style.left = `${newLeft}px`;
+        resizingElement.style.top = `${newTop}px`;
+
+        updatePropertiesPanel(resizingElement); // Update size/pos in panel
+      }
+      function onResizeEnd(e) {
+        // (Unchanged from your provided code)
+        if (resizingElement) {
+          // Optional: Re-apply flex centering for text elements after resize
+          // if (resizingElement.dataset.type === 'text') {
+          //    resizingElement.style.display = 'flex';
+          //    resizingElement.style.alignItems = 'center';
+          //     // Adjust justify based on text align? Or keep default center?
+          //     // element.style.justifyContent = element.style.textAlign === 'center' ? 'center' : (element.style.textAlign === 'right' ? 'flex-end' : 'flex-start');
+          //    resizingElement.style.justifyContent = 'center';
+          // }
+
+          resizingElement.classList.remove("dragging");
+          resizingElement = null;
+          resizeDirection = null;
+          initialResizeState = {};
+          document.removeEventListener("mousemove", onMouseMove);
+          document.removeEventListener("mouseup", onMouseUp);
+          if (selectedElement) updatePropertiesPanel(selectedElement); // Refresh panel state
+        }
+      }
+
+      // --- Function to Add a STANDARD Text Element ---
+      // MODIFIED: Added setup for potential scaling (actual scaling logic would need modification in resize handlers)
+      function addStandardTextElement(
+        text,
+        initialTop,
+        initialWidth = 300,
+        initialHeight = "auto", // Can be a specific pixel value or 'auto'
+        initialFontSize = DEFAULT_FONT_SIZE,
+        isMultiLine = false // Flag for elements created by the multi-line process
+      ) {
+        elementCounter++;
+        const newElement = document.createElement("div");
+        newElement.classList.add("design-element", "text-element");
+        newElement.dataset.id = `text-${elementCounter}`;
+        newElement.dataset.type = "text";
+        if (isMultiLine) {
+          newElement.dataset.multiline = "true"; // Mark as part of multi-line group
+        }
+        // Store initial dimensions and font size for potential scaling calculations later
+        // Note: Actual scaling during resize needs logic in onResizeMove/End
+        newElement.dataset.initialWidth = initialWidth;
+        newElement.dataset.initialHeight =
+          initialHeight === "auto" ? "auto" : initialHeight; // Store 'auto' or px value
+        newElement.dataset.initialFontSize = initialFontSize;
+
+        newElement.contentEditable = false; // Not editable initially
+        newElement.style.position = "absolute";
+        newElement.style.left = "0px"; // Default to left edge, width will control extent
+        newElement.style.top = `${initialTop}px`;
+        newElement.style.width = `${initialWidth}px`;
+        // Height setting depends on whether a specific height was passed
+        newElement.style.height =
+          initialHeight === "auto" ? "auto" : `${initialHeight}px`;
+        newElement.style.color = "#FFFF00"; // Default color
+        newElement.style.fontSize = `${initialFontSize}px`; // Set initial font size
+        newElement.style.textAlign = "center"; // Default alignment
+        newElement.style.backgroundColor = "transparent"; // Default background
+        newElement.style.overflow = "hidden"; // Hide text that overflows the box
+        newElement.style.whiteSpace = "pre-wrap"; // Respect newlines and wrap
+        newElement.style.wordBreak = "break-word"; // Break long words
+        newElement.style.padding = "2px 5px"; // Internal padding
+        newElement.style.boxSizing = "border-box"; // Padding included in width/height
+        // alert(
+        //   canvasWidthInput.value /
+        //     Math.min(initialWidth, initialFontSize * text.length)
+        // );
+        newElement.style.transform = `scale(${Math.max(
+          1,
+          (canvasWidthInput.value - 20) /
+            Math.min(initialWidth, initialFontSize * text.length)
+        )} , 1)`; // Initial scale
+
+        // --- Apply Flexbox for vertical centering IF a specific height is given ---
+        if (initialHeight !== "auto") {
+          newElement.style.display = "flex";
+          newElement.style.alignItems = "center"; // Vertically center
+          // Horizontally align text within flex container based on textAlign
+          switch (newElement.style.textAlign) {
+            case "center":
+              newElement.style.justifyContent = "center";
+              break;
+            case "right":
+              newElement.style.justifyContent = "flex-end";
+              break;
+            case "justify":
+              // newElement.style.justifyContent = "space-between"; // Justify
+              newElement.style.textAlign = "justify"; // Justify text
+              newElement.style.textAlignLast = "justify"; // Justify last line
+              break;
+            default:
+              newElement.style.justifyContent = "flex-start"; // Left or justify
+          }
+        } else {
+          newElement.style.display = "block"; // Default block display if height is auto
+        }
+
+        newElement.textContent = text;
+
+        // Add Resizers
+        const directions = ["tl", "tc", "tr", "ml", "mr", "bl", "bc", "br"];
+        directions.forEach((dir) => {
+          const resizer = document.createElement("div");
+          resizer.classList.add("resizer");
+          resizer.dataset.direction = dir;
+          resizer.addEventListener("mousedown", onResizeStart); // onResizeStart would trigger onResizeMove
+          newElement.appendChild(resizer);
+        });
+
+        // Event Listeners for the element itself
+        newElement.addEventListener("mousedown", onMouseDown); // For dragging
+        newElement.addEventListener("click", (e) => {
+          e.stopPropagation(); // Prevent canvas click deselecting
+          selectElement(newElement);
+        });
+
+        // Update property panel on blur if content changed
+        newElement.addEventListener("blur", () => {
+          if (selectedElement === newElement) {
+            propTextContent.value = newElement.textContent;
+            // If the element is no longer selected after blur, make non-editable
+            if (!newElement.classList.contains("selected")) {
+              newElement.contentEditable = false;
+            }
+            // Recalculate 'initial' height if it was auto and changed due to content
+            if (newElement.dataset.initialHeight === "auto") {
+              // Option: update initialHeight dataset if needed, or rely on current computed height
+            }
+          } else {
+            newElement.contentEditable = false;
+          }
+        });
+
+        // Update text property panel and adjust height dynamically on input
+        newElement.addEventListener("input", () => {
+          if (selectedElement === newElement && newElement.isContentEditable) {
+            propTextContent.value = newElement.textContent;
+
+            // When editing manually, let height adjust naturally (keep existing logic)
+            newElement.style.display = "block";
+            newElement.style.alignItems = "";
+            newElement.style.justifyContent = "";
+            const originalWidth = newElement.style.width;
+            newElement.style.height = "auto";
+            newElement.style.width = originalWidth;
+
+            let newHeight = newElement.scrollHeight;
+            const canvasRect = canvas.getBoundingClientRect();
+            const currentTop = newElement.offsetTop;
+
+            if (currentTop + newHeight > canvasRect.height) {
+              newHeight = canvasRect.height - currentTop;
+              newElement.style.overflow = "auto";
+            } else {
+              newElement.style.overflow = "hidden";
+            }
+
+            newElement.style.height =
+              Math.max(MIN_ELEMENT_HEIGHT, newHeight) + "px";
+            updatePropertiesPanel(newElement);
+          }
+        });
+
+        canvas.appendChild(newElement);
+
+        // Special case: If height was 'auto', calculate initial height after appending
+        if (initialHeight === "auto") {
+          const calculatedHeight = Math.max(
+            MIN_ELEMENT_HEIGHT,
+            newElement.scrollHeight
+          );
+          newElement.style.height = calculatedHeight + "px";
+          // Update the dataset with the calculated initial height if you need it for scaling later
+          newElement.dataset.initialHeight = calculatedHeight;
+          // Update panel if not already selected (though it usually will be)
+          if (selectedElement !== newElement) {
+            // Note: updatePropertiesPanel typically called by selectElement
+            // If needed explicitly: updatePropertiesPanel(newElement);
+          }
+        }
+
+        return newElement;
+      }
+      // --- Add Image Element ---
+      function addImageElement(imageDataUrl) {
+        // (Unchanged from your provided code)
+        elementCounter++;
+        const newElement = document.createElement("div");
+        newElement.classList.add("design-element", "image-element");
+        newElement.dataset.id = `image-${elementCounter}`;
+        newElement.dataset.type = "image";
+
+        const img = document.createElement("img");
+        img.src = imageDataUrl;
+        img.alt = `用户图片 ${elementCounter}`;
+        img.style.display = "block";
+        img.style.width = "100%";
+        img.style.height = "100%";
+        img.style.objectFit = "contain"; // Preserve aspect ratio
+        img.draggable = false; // Prevent native image dragging
+        newElement.appendChild(img);
+
+        newElement.style.position = "absolute";
+        newElement.style.left = "20px"; // Initial position
+        newElement.style.top = "20px";
+        newElement.style.width = "200px"; // Initial size
+        newElement.style.height = "150px";
+        newElement.style.backgroundColor = "transparent"; // Default background
+        newElement.style.overflow = "hidden"; // Clip image to bounds
+
+        // Add Resizers
+        const directions = ["tl", "tc", "tr", "ml", "mr", "bl", "bc", "br"];
+        directions.forEach((dir) => {
+          const resizer = document.createElement("div");
+          resizer.classList.add("resizer");
+          resizer.dataset.direction = dir;
+          resizer.addEventListener("mousedown", onResizeStart);
+          newElement.appendChild(resizer);
+        });
+
+        // Event Listeners
+        newElement.addEventListener("mousedown", onMouseDown);
+        newElement.addEventListener("click", (e) => {
+          e.stopPropagation();
+          selectElement(newElement);
+        });
+
+        canvas.appendChild(newElement);
+        selectElement(newElement); // Select the new image
+      }
+
+      // --- Properties Panel Logic ---
+      function updatePropertiesPanel(element) {
+        // (Unchanged from your provided code)
+        if (!element) {
+          propertiesPanel.classList.remove("active");
+          return;
+        }
+        if (!propertiesPanel.classList.contains("active")) {
+          propertiesPanel.classList.add("active");
+        }
+
+        const type = element.dataset.type;
+        propTitle.textContent = `${
+          type === "text" ? "文本" : type === "image" ? "图片" : "元素"
+        } #${element.dataset.id.split("-")[1]}`;
+        propPos.textContent = `位置: X: ${element.offsetLeft}px, Y: ${element.offsetTop}px`;
+        propSize.textContent = `尺寸: ${element.offsetWidth}×${element.offsetHeight}px`;
+        propBgColor.value =
+          rgbToHex(element.style.backgroundColor) || "#000000"; // Default to black if transparent/invalid
+
+        if (type === "text") {
+          textSpecificProps.style.display = "block";
+          imageSpecificProps.style.display = "none";
+          propTextContent.value = element.textContent; // Sync textarea
+          propTextAlign.value = element.style.textAlign || "left";
+          propTextColor.value = rgbToHex(element.style.color) || "#ffff00"; // Default to yellow
+          const currentFontSize =
+            Math.round(parseFloat(window.getComputedStyle(element).fontSize)) ||
+            DEFAULT_FONT_SIZE;
+          // Clamp font size values to slider/input limits
+          propFontSizeRange.value = Math.max(
+            MIN_FONT_SIZE,
+            Math.min(currentFontSize, MAX_FONT_SIZE)
+          );
+          propFontSizeInput.value = propFontSizeRange.value; // Sync input with potentially clamped range value
+        } else if (type === "image") {
+          textSpecificProps.style.display = "none";
+          imageSpecificProps.style.display = "block";
+        } else {
+          // Handle other types if any
+          textSpecificProps.style.display = "none";
+          imageSpecificProps.style.display = "none";
+        }
+        propDeleteBtn.disabled = false; // Enable delete button when an element is selected
+      }
+      function rgbToHex(rgb) {
+        // (Unchanged from your provided code)
+        if (!rgb || rgb === "transparent" || rgb === "") return null;
+        // Check if it's already hex
+        if (/^#[0-9a-fA-F]{3,6}$/.test(rgb)) return rgb.toLowerCase();
+
+        let match = rgb.match(
+          /^rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*[\d.]+)?\)$/
+        );
+        if (!match) return null; // Return null if format is unexpected
+
+        function hex(x) {
+          const v = parseInt(x, 10);
+          return isNaN(v) ? "00" : ("0" + v.toString(16)).slice(-2);
+        }
+        return "#" + hex(match[1]) + hex(match[2]) + hex(match[3]);
+      }
+
+      // --- Event Listeners for Property Controls ---
+      propDeleteBtn.addEventListener("click", () => {
+        if (selectedElement) {
+          selectedElement.remove();
+          selectElement(null); // Deselect
+        }
+      });
+      propBgColor.addEventListener("input", (e) => {
+        if (selectedElement) {
+          selectedElement.style.backgroundColor = e.target.value;
+        }
+      });
+      propTextContent.addEventListener("input", (e) => {
+        // This listener now primarily updates the element if edited FROM the panel
+        if (selectedElement && selectedElement.dataset.type === "text") {
+          selectedElement.textContent = e.target.value;
+          // Trigger the same height adjustment logic as direct input
+          selectedElement.dispatchEvent(new Event("input", { bubbles: true }));
+        }
+      });
+      propTextAlign.addEventListener("change", (e) => {
+        if (selectedElement && selectedElement.dataset.type === "text") {
+          selectedElement.style.textAlign = e.target.value;
+          // Update flex justification if element is using flex display
+          if (selectedElement.style.display === "flex") {
+            switch (e.target.value) {
+              case "center":
+                selectedElement.style.justifyContent = "center";
+                break;
+              case "right":
+                selectedElement.style.justifyContent = "flex-end";
+                break;
+              case "justify":
+                // selectedElement.style.justifyContent = "space-between";
+                selectedElement.style.textAlign = "justify";
+                break;
+              default:
+                selectedElement.style.justifyContent = "flex-start"; // Left or justify
+            }
+          }
+        }
+      });
+      propTextColor.addEventListener("input", (e) => {
+        if (selectedElement && selectedElement.dataset.type === "text") {
+          selectedElement.style.color = e.target.value;
+        }
+      });
+      // Combined listener for font size range and input
+      const handleFontSizeChange = (size) => {
+        if (selectedElement && selectedElement.dataset.type === "text") {
+          size = parseInt(size, 10);
+          size = isNaN(size)
+            ? MIN_FONT_SIZE
+            : Math.max(MIN_FONT_SIZE, Math.min(size, MAX_FONT_SIZE * 2)); // Allow slightly larger via input
+
+          selectedElement.style.fontSize = size + "px";
+          propFontSizeRange.value = Math.min(size, MAX_FONT_SIZE); // Keep range within its max
+          propFontSizeInput.value = size;
+
+          // Auto height adjust after font size change
+          // Temporarily remove flex/fixed height
+          selectedElement.style.display = "block";
+          selectedElement.style.alignItems = "";
+          selectedElement.style.justifyContent = "";
+          const originalWidth = selectedElement.style.width;
+          selectedElement.style.height = "auto";
+          selectedElement.style.width = originalWidth;
+
+          let newHeight = selectedElement.scrollHeight;
+          const canvasRect = canvas.getBoundingClientRect();
+          const currentTop = selectedElement.offsetTop;
+          if (currentTop + newHeight > canvasRect.height) {
+            newHeight = canvasRect.height - currentTop;
+            selectedElement.style.overflow = "auto";
+          } else {
+            selectedElement.style.overflow = "hidden";
+          }
+
+          selectedElement.style.height =
+            Math.max(MIN_ELEMENT_HEIGHT, newHeight) + "px";
+          updatePropertiesPanel(selectedElement);
+        }
+      };
+      propFontSizeRange.addEventListener("input", (e) =>
+        handleFontSizeChange(e.target.value)
+      );
+      propFontSizeInput.addEventListener("change", (e) =>
+        handleFontSizeChange(e.target.value)
+      ); // Use change for input to avoid firing on every digit
+
+      canvasBgColor.addEventListener("input", (e) => {
+        canvas.style.backgroundColor = e.target.value;
+      });
+
+      // --- PDF Export ---
+      exportPdfButton.addEventListener("click", () => {
+        // (Unchanged from your provided code)
+        const currentSelected = selectedElement;
+        // Temporarily deselect for clean export
+        if (currentSelected) {
+          selectElement(null);
+        }
+
+        setTimeout(() => {
+          // Allow UI to update after deselect
+          html2canvas(canvas, {
+            scale: 2, // Higher scale for better resolution
+            useCORS: true, // For external images if any
+            backgroundColor: canvas.style.backgroundColor || "#DC2626", // Use canvas bg
+            logging: false, // Disable console logging
+            scrollX: 0, // Ensure we capture from the top-left
+            scrollY: 0,
+            windowWidth: canvas.offsetWidth, // Use actual element dimensions
+            windowHeight: canvas.offsetHeight,
+          })
+            .then((canvasRendered) => {
+              const imgData = canvasRendered.toDataURL("image/png");
+              const pdf = new jsPDF({
+                orientation:
+                  canvas.offsetWidth > canvas.offsetHeight
+                    ? "landscape"
+                    : "portrait",
+                unit: "px",
+                format: [canvas.offsetWidth, canvas.offsetHeight], // PDF size matches canvas
+              });
+              pdf.addImage(
+                imgData,
+                "PNG",
+                0,
+                0,
+                canvas.offsetWidth,
+                canvas.offsetHeight
+              );
+              pdf.save("广告设计.pdf");
+
+              // Reselect element if one was selected before
+              if (currentSelected) {
+                selectElement(currentSelected);
+              }
+            })
+            .catch((err) => {
+              console.error("Error exporting PDF:", err);
+              alert("导出PDF时出错: " + err.message);
+              // Reselect element even if error occurred
+              if (currentSelected) {
+                selectElement(currentSelected);
+              }
+            });
+        }, 150); // Small delay
+      });
+
+      // --- Initial Setup ---
+      addTextButton.addEventListener("click", () => {
+        selectElement(null); // Deselect current
+        const newElement = addStandardTextElement(
+          `单行文本 ${++elementCounter}`, // Use global counter
+          10, // Initial Top
+          300, // Initial Width
+          "auto", // Auto height
+          DEFAULT_FONT_SIZE, // Use default font size
+          false // Not multi-line
+        );
+        newElement.style.left = "10px"; // Specific X pos
+        // Ensure display is block for single elements unless flex is desired by default
+        // addStandardTextElement handles this based on height='auto'
+        selectElement(newElement); // Select the newly added element
+      });
+
+      // --- Multi-line Text Button opens Modal ---
+      addMultilineTextButton.addEventListener("click", () => {
+        selectElement(null); // Deselect current
+        multilineTextarea.value = ""; // Clear textarea
+        multilineModal.showModal(); // Show the daisyUI modal
+      });
+
+      // --- MODIFIED: Multi-line Modal Confirmation Logic ---
+      modalConfirmBtn.addEventListener("click", (e) => {
+        e.preventDefault(); // Prevent default form submission
+
+        const inputText = multilineTextarea.value;
+        const lines = inputText
+          .split("\n")
+          .map((line) => line.trim()) // Trim whitespace from each line
+          .filter((line) => line.length > 0); // Remove empty lines
+
+        if (lines.length === 0) {
+          multilineModal.close(); // Close modal if no valid lines
+          return;
+        }
+
+        // const canvasHeight = canvas.clientHeight;
+        // const canvasWidth = canvas.clientWidth;
+        const canvasHeight = canvasHeightInput.value;
+        const canvasWidth = canvasWidthInput.value;
+        const numberOfLines = lines.length;
+
+        // Calculate the height for each line's slot, ensuring minimum height
+        const slotHeight = Math.max(
+          MIN_ELEMENT_HEIGHT,
+          Math.floor(canvasHeight / numberOfLines)
+        );
+
+        selectElement(null); // Deselect any current element
+
+        // Helper function to estimate a suitable font size to fit text width-wise
+        // This is a heuristic and might need refinement based on font choice/style
+        function calculationFontSizeByText(text, availableWidth) {
+          if (!text) return MIN_FONT_SIZE; // Handle empty text case
+          let fontSize = MAX_FONT_SIZE; // Start large
+          const averageCharWidthFactor = FONT_SIZE_HEIGHT_RATIO; // Adjust this factor based on typical font
+          let estimatedWidth =
+            (text.length * fontSize) / averageCharWidthFactor;
+          // Decrease font size until estimated width fits available width
+          while (estimatedWidth > availableWidth && fontSize > MIN_FONT_SIZE) {
+            fontSize--;
+            // console.log(fontSize);
+            estimatedWidth = (text.length * fontSize) / averageCharWidthFactor;
+          }
+          return Math.max(MIN_FONT_SIZE, fontSize); // Ensure minimum font size
+        }
+
+        let elements_info = [];
+        let maxfonts = 0;
+        let maxline = null;
+        let maxIndex = 0;
+        let sumFonts = 0;
+        for (let i = 0; i < numberOfLines; i++) {
+          if (lines[i].length > maxfonts) {
+            maxfonts = lines[i].length;
+            maxline = lines[i];
+            maxIndex = i;
+          }
+          sumFonts += lines[i].length;
+        }
+        let inverseProportionTotal = 0;
+        for (let i = 0; i < numberOfLines; i++) {
+          if (lines[i].length == maxfonts) {
+            continue;
+          }
+          inverseProportionTotal += 1 - lines[i].length / (sumFonts - maxfonts);
+        }
+
+        function countDigits(str) {
+          let count = 0;
+          for (let i = 0; i < str.length; i++) {
+            if (/\d/.test(str[i])) {
+              count++;
+            }
+          }
+          return count;
+        }
+        let digitsCount = countDigits(maxline);
+        let hanziCount = maxline.length - digitsCount;
+        let balanceFactor = (1.6 * digitsCount + hanziCount) / maxline.length;
+        const minFontSize =
+          Math.floor((canvasWidth - 10) / maxfonts) * balanceFactor; // Subtract padding
+        console.log(minFontSize);
+        const minHeight = Math.floor(minFontSize / 0.95);
+        const residualHeight = canvasHeight - minHeight;
+        const otherLinesHeight = (length) => {
+          if (numberOfLines <= 2) {
+            return residualHeight;
+          }
+          return Math.floor(
+            (residualHeight * (1 - length / (sumFonts - maxfonts))) /
+              inverseProportionTotal
+          );
+        };
+
+        let position = 0;
+        // Create a text element for each line
+        lines.forEach((lineText, index) => {
+          const topPosition = index * slotHeight;
+
+          // 1. Determine max font size based on available width
+          const widthBasedFontSize = calculationFontSizeByText(
+            lineText,
+            canvasWidth - 10
+          ); // Subtract padding
+
+          // 2. Determine max font size based on available height (heuristic)
+          const heightBasedFontSize = Math.floor(
+            (index == maxIndex
+              ? minHeight
+              : otherLinesHeight(lineText.length)) * FONT_SIZE_HEIGHT_RATIO
+          );
+
+          // 3. Choose the smaller font size to ensure text fits both vertically and horizontally
+          let finalFontSize = Math.min(widthBasedFontSize, heightBasedFontSize);
+
+          // 4. Apply absolute min/max constraints
+          finalFontSize = Math.max(
+            MIN_FONT_SIZE,
+            Math.min(finalFontSize, MAX_FONT_SIZE)
+          );
+          finalFontSize = Math.round(finalFontSize); // Use whole pixels
+
+          // Add the text element using the calculated values
+          addStandardTextElement(
+            lineText, // The text content for this line
+            position, // Calculated top position
+            canvasWidth, // Full canvas width
+            index == maxIndex ? minHeight : otherLinesHeight(lineText.length), // Calculated height for this slot
+            index == maxIndex ? minFontSize : finalFontSize, // Calculated font size
+            true // Mark as multi-line element
+          );
+          position +=
+            index == maxIndex ? minHeight : otherLinesHeight(lineText.length); // Update position for next line
+        });
+
+        multilineModal.close(); // Close the modal after adding elements
+      });
+
+      // --- Image Button and File Input Listeners ---
+      addImageButton.addEventListener("click", () => {
+        imageUploadInput.click(); // Trigger file input
+      });
+      imageUploadInput.addEventListener("change", (event) => {
+        // (Unchanged from your provided code)
+        const file = event.target.files[0];
+        if (file && file.type.startsWith("image/")) {
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            selectElement(null); // Deselect current before adding
+            addImageElement(e.target.result); // Add the image element
+          };
+          reader.onerror = (err) => {
+            console.error("File reading error:", err);
+            alert("无法读取图片文件。");
+          };
+          reader.readAsDataURL(file); // Read file as Data URL
+        } else if (file) {
+          alert("请选择一个图片文件。"); // Alert if not an image
+        }
+        // Reset file input to allow selecting the same file again
+        event.target.value = null;
+      });
+      // --- Initialize ---
+      document.addEventListener("DOMContentLoaded", () => {
+        initializeCanvas();
+        propDeleteBtn.disabled = true; // Initially disable delete
+      });
+    </script>
+  </body>
+</html>
