@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+    <title>全屏 3D 飞行模拟器</title>
+    <style>
+      /* 基本重置和全屏设置 */
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden; /* 隐藏滚动条 */
+        font-family: sans-serif;
+        background-color: #000; /* 背景色，以防画布加载慢 */
+        color: white;
+      }
+
+      #canvas-container {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+      }
+
+      canvas {
+        display: block; /* 消除底部空白 */
+        width: 100%;
+        height: 100%;
+        cursor: pointer; /* Indicate clickable for pointer lock */
+      }
+
+      /* 初始提示信息样式 */
+      #instructions {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        text-align: center;
+        background-color: rgba(0, 0, 0, 0.7);
+        padding: 30px;
+        border-radius: 10px;
+        z-index: 10; /* 确保在最前面 */
+      }
+      #instructions h1 {
+        margin-bottom: 20px;
+      }
+      #instructions p {
+        margin-bottom: 10px;
+        line-height: 1.5;
+      }
+      #startButton {
+        padding: 10px 20px;
+        font-size: 1.1em;
+        cursor: pointer;
+        margin-top: 15px;
+      }
+
+      /* HUD 样式 (定位到左下角) */
+      #hud {
+        position: absolute;
+        bottom: 15px;
+        left: 15px;
+        padding: 12px;
+        background-color: rgba(0, 0, 0, 0.65);
+        color: white;
+        border-radius: 8px;
+        min-width: 200px;
+        font-size: 1em;
+        z-index: 5; /* 在 Canvas 之上 */
+        display: none; /* Initially hidden */
+      }
+
+      #hud p {
+        margin: 6px 0;
+      }
+      #stallWarning {
+          font-weight: bold;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- 初始提示信息 -->
+    <div id="instructions">
+        <h1>全屏 3D 飞行模拟器</h1>
+        <p id="loadingStatus">加载中... 请稍候</p>
+        <p>控制: [W/S] 俯仰 | [A/D] 滚转 | [Q/E] 偏航 | [↑/↓] 推力 | [鼠标] 视角</p>
+        <button id="startButton">开始游戏</button>
+    </div>
+
+    <div id="canvas-container">
+      <canvas id="gameCanvas"></canvas>
+    </div>
+
+    <!-- HUD -->
+    <div id="hud">
+      <p>速度: <span id="speedDisplay">0</span> m/s</p>
+      <p>高度: <span id="altitudeDisplay">0</span> m</p>
+      <p>俯仰角: <span id="pitchDisplay">0</span> °</p>
+      <p>滚转角: <span id="rollDisplay">0</span> °</p>
+      <p id="stallWarning" style="color: yellow; display: none">失速警告!</p>
+    </div>
+
+    <!-- Three.js (CDN) -->
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "https://unpkg.com/three@0.160.0/build/three.module.js"
+        }
+      }
+    </script>
+    <script type="module">
+        import * as THREE from "three";
+
+        // --- DOM Elements ---
+        const instructionsDiv = document.getElementById("instructions");
+        const loadingStatus = document.getElementById("loadingStatus");
+        const startButton = document.getElementById("startButton");
+        const canvasContainer = document.getElementById("canvas-container");
+        const canvas = document.getElementById("gameCanvas");
+        const hud = document.getElementById("hud");
+        const speedDisplay = document.getElementById("speedDisplay");
+        const altitudeDisplay = document.getElementById("altitudeDisplay");
+        const pitchDisplay = document.getElementById("pitchDisplay");
+        const rollDisplay = document.getElementById("rollDisplay");
+        const stallWarning = document.getElementById("stallWarning");
+
+        // --- Basic Setup ---
+        const scene = new THREE.Scene();
+        const renderer = new THREE.WebGLRenderer({
+          canvas: canvas,
+          antialias: true,
+        });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(window.devicePixelRatio);
+
+        const camera = new THREE.PerspectiveCamera(
+          75,
+          window.innerWidth / window.innerHeight,
+          0.1,
+          20000 // Increased far plane distance even more
+        );
+
+        // --- Lights ---
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
+        scene.add(ambientLight);
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 1.2);
+        directionalLight.position.set(50, 80, 40);
+        directionalLight.castShadow = false;
+        scene.add(directionalLight);
+
+        // --- Game Constants ---
+        const GRAVITY = 9.81;
+        const MASS = 1000;
+        const THRUST_FORCE = 28000;
+        const LIFT_COEFFICIENT = 0.8;
+        const DRAG_COEFFICIENT_PARASITIC = 0.00003;
+        const DRAG_COEFFICIENT_INDUCED_BASE = 0.005;
+        const WING_AREA = 30;
+        const AIR_DENSITY = 1.225;
+        const PITCH_TORQUE = 7000;
+        const ROLL_TORQUE = 9000;
+        const YAW_TORQUE = 4500;
+        const ANGULAR_DAMPING = 0.92;
+        const GROUND_LEVEL = 0;
+        const INITIAL_ALTITUDE = 300;
+        const MOUSE_SENSITIVITY = 0.002;
+        const CAMERA_FOLLOW_SPEED = 0.05;
+
+        // --- Plane State (Physics) ---
+        const planeState = {
+          position: new THREE.Vector3(0, INITIAL_ALTITUDE, 0),
+          velocity: new THREE.Vector3(0, 0, 90),
+          orientation: new THREE.Quaternion(),
+          angularVelocity: new THREE.Vector3(0, 0, 0),
+          thrustFactor: 0.65,
+          isStalled: false,
+        };
+
+        const keysPressed = {};
+        const clock = new THREE.Clock();
+        let gameRunning = false;
+        let isPointerLocked = false;
+
+        // Camera Control State
+        let cameraYawOffset = 0;
+        let cameraPitchOffset = 0;
+        const cameraBaseOffset = new THREE.Vector3(0, 6, -18);
+
+        // --- Plane Model ---
+        const planeGroup = new THREE.Group();
+        const fuselageGeometry = new THREE.BoxGeometry(2, 0.8, 8);
+        const fuselageMaterial = new THREE.MeshPhongMaterial({ color: 0xcccccc, flatShading: true });
+        const fuselage = new THREE.Mesh(fuselageGeometry, fuselageMaterial);
+        planeGroup.add(fuselage);
+
+        const wingGeometry = new THREE.BoxGeometry(10, 0.2, 2);
+        const wingMaterial = new THREE.MeshPhongMaterial({ color: 0xaaaaaa, flatShading: true });
+        const wing = new THREE.Mesh(wingGeometry, wingMaterial);
+        wing.position.z = -1;
+        planeGroup.add(wing);
+
+        const tailFinGeometry = new THREE.BoxGeometry(0.3, 2, 1.2);
+        const tailFinMaterial = new THREE.MeshPhongMaterial({ color: 0x999999, flatShading: true });
+        const tailFin = new THREE.Mesh(tailFinGeometry, tailFinMaterial);
+        tailFin.position.set(0, 1.0, -3.5);
+        planeGroup.add(tailFin);
+
+        const hStabGeometry = new THREE.BoxGeometry(4, 0.15, 1);
+        const hStab = new THREE.Mesh(hStabGeometry, tailFinMaterial);
+        hStab.position.set(0, 0.6, -3.5);
+        planeGroup.add(hStab);
+
+        planeGroup.position.copy(planeState.position);
+        planeGroup.quaternion.copy(planeState.orientation);
+        scene.add(planeGroup);
+
+        // --- Background (Replaced Skybox) ---
+        scene.background = new THREE.Color(0x87ceeb); // Set background to sky blue
+        scene.fog = new THREE.Fog(0xaaaaaa, 1000, 15000); // Fog helps blend the ground with the background color
+
+        // --- Ground ---
+        // Create a simple green ground material without external textures
+        const groundMaterial = new THREE.MeshPhongMaterial({
+          color: 0x55aa55, // Green color
+          side: THREE.DoubleSide,
+          shininess: 0 // Make ground non-shiny
+        });
+
+        const groundGeometry = new THREE.PlaneGeometry(40000, 40000); // Large ground plane
+        const ground = new THREE.Mesh(groundGeometry, groundMaterial);
+        ground.rotation.x = -Math.PI / 2;
+        ground.position.y = GROUND_LEVEL;
+        scene.add(ground);
+
+        // Add ground details (simple brown cubes) without external textures
+        const boxGeometry = new THREE.BoxGeometry(30, 30, 30);
+        const boxMaterial = new THREE.MeshPhongMaterial({ color: 0xcc8855 }); // Brown color
+        for (let i = 0; i < 200; i++) {
+          const box = new THREE.Mesh(boxGeometry, boxMaterial);
+          box.position.set(
+            (Math.random() - 0.5) * 38000,
+            GROUND_LEVEL + 15, // Position boxes on the ground
+            (Math.random() - 0.5) * 38000
+          );
+          scene.add(box);
+        }
+
+        // --- Helper Functions ---
+        function getForwardVector(object) {
+            const vector = new THREE.Vector3(0, 0, 1);
+            vector.applyQuaternion(object.quaternion);
+            return vector;
+        }
+        function getUpVector(object) {
+            const vector = new THREE.Vector3(0, 1, 0);
+            vector.applyQuaternion(object.quaternion);
+            return vector;
+        }
+        function getRightVector(object) {
+            const vector = new THREE.Vector3(1, 0, 0);
+            vector.applyQuaternion(object.quaternion);
+            return vector;
+        }
+
+        // --- Input Handling ---
+        // [Input handling functions: handleMouseMove, setupInputListeners, handlePointerLockChange, handlePointerLockError remain the same]
+        function handleMouseMove(event) {
+          if (!gameRunning || !isPointerLocked) return;
+          const movementX = event.movementX || event.mozMovementX || event.webkitMovementX || 0;
+          const movementY = event.movementY || event.mozMovementY || event.webkitMovementY || 0;
+          cameraYawOffset -= movementX * MOUSE_SENSITIVITY;
+          cameraPitchOffset -= movementY * MOUSE_SENSITIVITY;
+          const maxPitch = Math.PI / 2 - 0.1;
+          cameraPitchOffset = Math.max(-maxPitch, Math.min(maxPitch, cameraPitchOffset));
+        }
+
+        function setupInputListeners() {
+          window.addEventListener("keydown", (e) => {
+            if (!gameRunning) return;
+            const key = e.key.toLowerCase();
+            keysPressed[key] = true;
+            if ( ["w", "s", "a", "d", "q", "e", "arrowup", "arrowdown", " "].includes(key) ) {
+              e.preventDefault();
+            }
+          });
+          window.addEventListener("keyup", (e) => {
+            if (!gameRunning) return;
+            keysPressed[e.key.toLowerCase()] = false;
+          });
+          document.addEventListener("mousemove", handleMouseMove, false);
+          document.addEventListener('pointerlockchange', handlePointerLockChange, false);
+          document.addEventListener('mozpointerlockchange', handlePointerLockChange, false);
+          document.addEventListener('webkitpointerlockchange', handlePointerLockChange, false);
+          document.addEventListener('pointerlockerror', handlePointerLockError, false);
+          document.addEventListener('mozpointerlockerror', handlePointerLockError, false);
+          document.addEventListener('webkitpointerlockerror', handlePointerLockError, false);
+          canvas.addEventListener('click', () => {
+            if (gameRunning && !isPointerLocked) {
+              canvas.requestPointerLock = canvas.requestPointerLock || canvas.mozRequestPointerLock || canvas.webkitRequestPointerLock;
+               if (canvas.requestPointerLock) {
+                  canvas.requestPointerLock();
+               } else {
+                  console.warn("Pointer Lock API not supported by this browser.");
+               }
+            }
+          });
+        }
+
+        function handlePointerLockChange() {
+            if (document.pointerLockElement === canvas || document.mozPointerLockElement === canvas || document.webkitPointerLockElement === canvas) {
+                console.log('Pointer Lock Active');
+                isPointerLocked = true;
+            } else {
+                console.log('Pointer Lock Released');
+                isPointerLocked = false;
+            }
+        }
+
+        function handlePointerLockError(e) {
+            console.error('Pointer Lock Error:', e);
+            isPointerLocked = false;
+        }
+
+
+        // --- Window Resize Handling ---
+        // [onWindowResize function remains the same]
+         function onWindowResize() {
+          camera.aspect = window.innerWidth / window.innerHeight;
+          camera.updateProjectionMatrix();
+          renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+        window.addEventListener("resize", onWindowResize);
+
+
+        // --- Game Update Logic ---
+        // [update function remains largely the same, physics calculations are independent of background]
+        function update(deltaTime) {
+          if (!gameRunning || deltaTime <= 0) return;
+
+          // 1. Apply Control Inputs
+          let pitchInput = 0, rollInput = 0, yawInput = 0, thrustInput = 0;
+          if (keysPressed["w"]) pitchInput = 1;
+          if (keysPressed["s"]) pitchInput = -1;
+          if (keysPressed["a"]) rollInput = 1;
+          if (keysPressed["d"]) rollInput = -1;
+          if (keysPressed["q"]) yawInput = 1;
+          if (keysPressed["e"]) yawInput = -1;
+          if (keysPressed["arrowup"]) thrustInput = 1;
+          if (keysPressed["arrowdown"]) thrustInput = -1;
+
+          planeState.thrustFactor += thrustInput * 0.6 * deltaTime;
+          planeState.thrustFactor = Math.max(0, Math.min(1, planeState.thrustFactor));
+
+          const rightVec = getRightVector(planeGroup);
+          const upVec = getUpVector(planeGroup);
+          const forwardVec = getForwardVector(planeGroup);
+
+          const pitchInertia = MASS * 8;
+          const rollInertia = MASS * 10;
+          const yawInertia = MASS * 12;
+
+          const pitchAcc = rightVec.clone().multiplyScalar((pitchInput * PITCH_TORQUE) / pitchInertia);
+          const rollAcc = forwardVec.clone().multiplyScalar((rollInput * ROLL_TORQUE) / rollInertia);
+          const yawAcc = upVec.clone().multiplyScalar((yawInput * YAW_TORQUE) / yawInertia);
+
+          planeState.angularVelocity.add(pitchAcc.multiplyScalar(deltaTime));
+          planeState.angularVelocity.add(rollAcc.multiplyScalar(deltaTime));
+          planeState.angularVelocity.add(yawAcc.multiplyScalar(deltaTime));
+
+          const dampingFactor = Math.pow(1.0 - ANGULAR_DAMPING, deltaTime);
+          planeState.angularVelocity.multiplyScalar(dampingFactor);
+
+          // 2. Calculate Forces
+          const speed = planeState.velocity.length();
+          const speedSq = speed * speed;
+          const thrust = forwardVec.clone().multiplyScalar(planeState.thrustFactor * THRUST_FORCE);
+          const gravity = new THREE.Vector3(0, -GRAVITY * MASS, 0);
+          let lift = new THREE.Vector3();
+          let drag = new THREE.Vector3();
+          planeState.isStalled = false;
+
+          if (speed > 1.0) {
+            const velocityDir = planeState.velocity.clone().normalize();
+            const pitchAngleRad = Math.asin(Math.max(-1, Math.min(1, forwardVec.y)));
+            const stallSpeed = 40;
+            const criticalPitchAngle = THREE.MathUtils.degToRad(20);
+            let effectiveLiftCoefficient = LIFT_COEFFICIENT;
+
+            if (speed < stallSpeed * 1.5 && pitchAngleRad > criticalPitchAngle) {
+                const stallFactor = Math.max(0, (pitchAngleRad - criticalPitchAngle) / THREE.MathUtils.degToRad(15));
+                const speedFactor = Math.max(0, 1.0 - (speed / (stallSpeed * 1.5)));
+                if (stallFactor * speedFactor > 0.1) {
+                    effectiveLiftCoefficient *= Math.max(0.2, 1.0 - Math.min(1, stallFactor * speedFactor * 2));
+                    planeState.isStalled = true;
+                }
+            }
+
+            const liftMagnitude = 0.5 * AIR_DENSITY * speedSq * WING_AREA * effectiveLiftCoefficient;
+            const liftDirection = velocityDir.clone().cross(rightVec).normalize();
+            if(liftDirection.dot(upVec) < 0) liftDirection.negate();
+            lift = liftDirection.multiplyScalar(liftMagnitude);
+
+            const parasiticDragMagnitude = 0.5 * AIR_DENSITY * speedSq * WING_AREA * DRAG_COEFFICIENT_PARASITIC * (1 + (planeState.isStalled ? 2.5 : 0));
+            const inducedDragCoefficient = DRAG_COEFFICIENT_INDUCED_BASE / (speedSq + 1.0) * (effectiveLiftCoefficient / LIFT_COEFFICIENT * 50000);
+            const inducedDragMagnitude = 0.5 * AIR_DENSITY * speedSq * WING_AREA * inducedDragCoefficient;
+            const totalDragMagnitude = parasiticDragMagnitude + inducedDragMagnitude;
+            drag = velocityDir.clone().multiplyScalar(-totalDragMagnitude);
+          }
+
+          const totalForce = new THREE.Vector3().add(thrust).add(gravity).add(lift).add(drag);
+
+          // 3. Integrate Physics (Position/Velocity)
+          const acceleration = totalForce.divideScalar(MASS);
+          planeState.velocity.add(acceleration.clone().multiplyScalar(deltaTime));
+          planeState.position.add(planeState.velocity.clone().multiplyScalar(deltaTime));
+
+          // 4. Integrate Rotation (Orientation)
+          const deltaRotation = new THREE.Quaternion();
+          const angularVelocityMagnitude = planeState.angularVelocity.length();
+          if (angularVelocityMagnitude > 0.0001) {
+            const rotationAxis = planeState.angularVelocity.clone().normalize();
+            const rotationAngle = angularVelocityMagnitude * deltaTime;
+            deltaRotation.setFromAxisAngle(rotationAxis, rotationAngle);
+            planeState.orientation.premultiply(deltaRotation);
+            planeState.orientation.normalize();
+          }
+
+          // 5. Update Three.js Object
+          planeGroup.position.copy(planeState.position);
+          planeGroup.quaternion.copy(planeState.orientation);
+
+          // 6. Collision Detection (Simple Ground)
+          const planeBottomOffset = -0.8;
+          const worldBottomOffset = upVec.clone().multiplyScalar(planeBottomOffset);
+          const planeWorldBottomY = planeState.position.y + worldBottomOffset.y;
+
+          if (planeWorldBottomY <= GROUND_LEVEL && planeState.velocity.y < 0) {
+              planeState.position.y -= (planeWorldBottomY - GROUND_LEVEL);
+              planeState.velocity.y *= -0.2;
+              planeState.velocity.x *= 0.7;
+              planeState.velocity.z *= 0.7;
+              planeState.angularVelocity.multiplyScalar(0.4);
+          }
+
+          // 7. Update Camera
+          const yawQuaternion = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), cameraYawOffset);
+          const pitchQuaternion = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), cameraPitchOffset);
+          const combinedOffsetRotation = yawQuaternion.clone().multiply(pitchQuaternion);
+          const rotatedOffset = cameraBaseOffset.clone().applyQuaternion(combinedOffsetRotation);
+          const cameraTargetPosition = planeGroup.position.clone().add(rotatedOffset);
+          camera.position.lerp(cameraTargetPosition, CAMERA_FOLLOW_SPEED);
+          const lookAtTarget = planeGroup.position.clone().add(forwardVec.clone().multiplyScalar(5));
+          camera.lookAt(lookAtTarget);
+
+          // 8. Update HUD
+          speedDisplay.textContent = speed.toFixed(1);
+          altitudeDisplay.textContent = Math.max(0, planeState.position.y - GROUND_LEVEL).toFixed(1);
+          const euler = new THREE.Euler().setFromQuaternion(planeState.orientation, "ZYX");
+          const pitchDeg = THREE.MathUtils.radToDeg(euler.y);
+          const rollDeg = THREE.MathUtils.radToDeg(euler.x);
+          pitchDisplay.textContent = pitchDeg.toFixed(1);
+          rollDisplay.textContent = rollDeg.toFixed(1);
+          stallWarning.style.display = planeState.isStalled ? "block" : "none";
+        }
+
+
+        // --- Game Loop ---
+        // [animate function remains the same]
+        function animate() {
+          requestAnimationFrame(animate);
+          const deltaTime = Math.min(0.05, clock.getDelta());
+          update(deltaTime);
+          renderer.render(scene, camera);
+        }
+
+
+        // --- Start Game Logic ---
+        // [Start button event listener remains the same]
+         startButton.addEventListener("click", () => {
+          instructionsDiv.style.display = "none";
+          const lockHint = document.createElement('p');
+          lockHint.textContent = '提示: 点击屏幕锁定鼠标以控制视角 (按 ESC 解锁)。';
+          lockHint.style.marginTop = '15px';
+          lockHint.style.fontSize = '0.9em';
+          lockHint.style.color = '#ffcc00';
+          const existingHint = instructionsDiv.querySelector('#lockHint');
+          if (existingHint) existingHint.remove();
+          lockHint.id = 'lockHint';
+          instructionsDiv.appendChild(lockHint);
+          instructionsDiv.style.display = "block";
+
+          setTimeout(() => {
+               instructionsDiv.style.display = "none";
+               hud.style.display = "block";
+          }, 4000);
+
+          gameRunning = true;
+          setupInputListeners();
+          clock.start();
+          animate();
+          console.log("游戏开始。点击屏幕以启用鼠标视角控制。");
+        });
+
+
+        // --- Initial State ---
+        loadingStatus.textContent = '加载完成!';
+        console.log("3D 飞行模拟器准备就绪。点击 '开始游戏'。");
+        camera.position.copy(planeState.position).add(new THREE.Vector3(0, 20, -50));
+        camera.lookAt(planeState.position);
+        renderer.render(scene, camera); // Initial render
+
+    </script>
+  </body>
+</html>
