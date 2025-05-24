@@ -249,13 +249,13 @@
         // 持续创建文字
         function startAnimation() {
             createText();
-            setTimeout(startAnimation, Math.random() * 1000 + 500);
+            setTimeout(startAnimation, Math.random() * 200 + 500);
         }
         
         // 初始化
         document.addEventListener('DOMContentLoaded', () => {
             // 立即创建几个文字
-            for (let i = 0; i < 3; i++) {
+            for (let i = 0; i < 10; i++) {
                 setTimeout(createText, i * 300);
             }
             
