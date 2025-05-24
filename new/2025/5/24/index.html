@@ -226,6 +226,7 @@
             // 随机动画
             const animation = animations[Math.floor(Math.random() * animations.length)];
             textElement.classList.add(animation);
+            textElement.style.fontSize = Math.random() * 40 + 24 + 'px'; // 随机字体大小
             
             // 随机特效
             const effect = effects[Math.floor(Math.random() * effects.length)];
@@ -249,7 +250,7 @@
         // 持续创建文字
         function startAnimation() {
             createText();
-            setTimeout(startAnimation, Math.random() * 200 + 500);
+            setTimeout(startAnimation, Math.random() * 100 + 100);
         }
         
         // 初始化
